@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0c0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kana">
+<title>Kana Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400&family=Zen+Maru+Gothic:wght@500;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c0e14;
+    --bg-glow-blue: rgba(91,140,255,0.14);
+    --bg-glow-pink: rgba(255,111,160,0.12);
+    --surface: #161a24;
+    --surface-2: #1d2230;
+    --border: #2a3040;
+    --border-soft: #232837;
+    --text: #edf0f7;
+    --muted: #8891a6;
+    --muted-soft: #5f6779;
+    --blue: #6a93ff;
+    --blue-dim: rgba(106,147,255,0.16);
+    --pink: #ff7bab;
+    --pink-dim: rgba(255,123,171,0.16);
+    --green: #4ade80;
+    --yellow: #fbbf5a;
+    --red: #ff7070;
+    --radius-xl: 32px;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow-card: 0 24px 60px -20px rgba(0,0,0,0.65);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    height: 100%;
+    margin: 0;
+  }
+
+  body{
+    font-family: 'Nunito', system-ui, sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg-glow-blue), transparent 45%),
+      radial-gradient(circle at 88% 92%, var(--bg-glow-pink), transparent 45%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 24px 22px;
+    gap: 18px;
+    min-height: 100vh;
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    width: 100%;
+    max-width: 920px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .brand{
+    font-family: 'Zen Maru Gothic', 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .brand .kana{
+    background: linear-gradient(120deg, var(--blue), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .progress{
+    font-size: 14px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- main stage ---------- */
+  .stage{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .card{
+    width: min(90vw, 420px);
+    min-height: 440px;
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    padding: 22px 26px 26px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: pan-y;
+    transition: box-shadow 0.4s ease, border-color 0.4s ease;
+    position: relative;
+    will-change: transform;
+  }
+  .card.slide-anim{
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+
+  .card.is-back{
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02) inset, 0 0 46px -18px rgba(255,123,171,0.35);
+    border-color: rgba(255,123,171,0.28);
+  }
+  .card.is-front{
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02) inset, 0 0 46px -18px rgba(106,147,255,0.32);
+    border-color: rgba(106,147,255,0.24);
+  }
+
+  .card-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 20px;
+  }
+
+  .face-label{
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--blue);
+    transition: color 0.25s ease;
+  }
+  .face-label.back{ color: var(--pink); }
+
+  .mark-indicator{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+    transition: all 0.2s ease;
+  }
+  .mark-indicator.show{
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
+  }
+
+  .card-body{
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+  }
+
+  .word-display{
+    font-family: 'HGKyokashotai', 'HGSKyokashotai', 'HGPKyokashotai', 'UD Digital Kyokasho N-R', 'UDデジタル教科書体', 'YuKyokasho Yoko', 'Klee One', 'Zen Maru Gothic', serif;
+    font-weight: 400;
+    font-size: clamp(30px, 7vw, 44px);
+    line-height: 1.3;
+    text-align: center;
+    word-break: keep-all;
+    transform: perspective(600px) rotateY(0deg);
+  }
+  .word-display.is-back{
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(20px, 4.6vw, 26px);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .word-display.flipping{
+    animation: flipY 0.32s ease;
+  }
+  @keyframes flipY{
+    0%{ transform: perspective(600px) rotateY(0deg); opacity: 1; }
+    48%{ transform: perspective(600px) rotateY(90deg); opacity: 0.25; }
+    52%{ transform: perspective(600px) rotateY(-90deg); opacity: 0.25; }
+    100%{ transform: perspective(600px) rotateY(0deg); opacity: 1; }
+  }
+
+  .card-swap{
+    animation: swapFade 0.22s ease;
+  }
+  @keyframes swapFade{
+    0%{ opacity: 0.15; transform: translateY(4px); }
+    100%{ opacity: 1; transform: translateY(0); }
+  }
+
+  .listen-row{
+    display: flex;
+    justify-content: center;
+    padding: 6px 0 18px;
+  }
+
+  .listen-btn{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(106,147,255,0.35);
+    background: var(--blue-dim);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .listen-btn:hover{ background: rgba(106,147,255,0.26); }
+  .listen-btn:active{ transform: scale(0.92); }
+  .listen-btn svg{ width: 20px; height: 20px; }
+  .listen-btn.speaking{ animation: pulse 0.9s ease infinite; }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(106,147,255,0.45); }
+    70%{ box-shadow: 0 0 0 10px rgba(106,147,255,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(106,147,255,0); }
+  }
+
+  .marks-row{
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-soft);
+    margin-top: auto;
+    padding-top: 18px;
+  }
+
+  .mark-btn{
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: transform 0.15s ease;
+  }
+  .mark-btn:hover{ transform: scale(1.14); }
+  .mark-btn:active{ transform: scale(0.94); }
+  .mark-btn.green{ background: var(--green); }
+  .mark-btn.yellow{ background: var(--yellow); }
+  .mark-btn.red{ background: var(--red); }
+  .mark-btn.active{
+    border-color: rgba(255,255,255,0.75);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+  }
+
+  .hint{
+    font-size: 12.5px;
+    color: var(--muted-soft);
+    text-align: center;
+  }
+  .hint kbd{
+    font-family: inherit;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  /* ---------- bottom bar ---------- */
+  .bottombar{
+    width: 100%;
+    max-width: 920px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .shuffle-group{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .shuffle-label{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .switch{
+    width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.25s ease, border-color 0.25s ease;
+    padding: 0;
+  }
+  .switch .knob{
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .switch.on{
+    background: linear-gradient(120deg, var(--blue), var(--pink));
+    border-color: transparent;
+  }
+  .switch.on .knob{
+    transform: translateX(20px);
+    background: #fff;
+  }
+
+  .bank-group{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .bank-filename{
+    font-size: 12.5px;
+    color: var(--muted-soft);
+    max-width: 240px;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bank-btn{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .bank-btn:hover{
+    border-color: var(--pink);
+    background: var(--pink-dim);
+  }
+  .bank-btn svg{ width: 16px; height: 16px; }
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(6,7,11,0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .overlay.open{ opacity: 1; pointer-events: auto; }
+
+  .modal{
+    width: min(90vw, 460px);
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    position: relative;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7);
+    transform: translateY(8px);
+    transition: transform 0.2s ease;
+  }
+  .overlay.open .modal{ transform: translateY(0); }
+
+  .modal h2{
+    margin: 0 0 4px;
+    font-size: 19px;
+  }
+  .modal p.sub{
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  .close-btn{
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface-2);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .close-btn:hover{ color: var(--text); }
+  .close-btn svg{ width: 14px; height: 14px; }
+
+  .dropzone{
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 34px 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .dropzone.dragover{
+    border-color: var(--blue);
+    background: var(--blue-dim);
+  }
+  .dropzone svg{
+    width: 30px;
+    height: 30px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .dropzone .dz-title{
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .dropzone .dz-sub{
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .modal-note{
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--muted-soft);
+    line-height: 1.5;
+  }
+
+  .modal-error{
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--red);
+    display: none;
+  }
+  .modal-error.show{ display: block; }
+
+  .hint-touch{ display: none; }
+  @media (hover: none) and (pointer: coarse){
+    .hint-desktop{ display: none; }
+    .hint-touch{ display: block; }
+    .mark-btn{ width: 34px; height: 34px; }
+    .marks-row{ gap: 30px; }
+    .listen-btn{ width: 52px; height: 52px; }
+  }
+
+  .app{
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
+    padding-top: max(28px, env(safe-area-inset-top));
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 480px){
+    .bottombar{ flex-direction: column; align-items: stretch; gap: 18px; }
+    .bank-group{ align-items: flex-start; }
+    .bank-filename{ text-align: left; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand"><span class="kana">かな</span> flashcards</div>
+    <div class="progress" id="progress">0 / 0</div>
+  </div>
+
+  <div class="stage">
+    <div class="card is-front" id="card" tabindex="0" aria-label="Flashcard, click or press space to flip">
+      <div class="card-header">
+        <div class="face-label" id="faceLabel">japanese</div>
+        <div class="mark-indicator" id="markIndicator"></div>
+      </div>
+      <div class="card-body">
+        <div class="word-display" id="wordDisplay"></div>
+      </div>
+      <div class="listen-row">
+        <button class="listen-btn" id="listenBtn" aria-label="Listen to pronunciation" title="Listen (v)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+            <path d="M18.5 6a9 9 0 0 1 0 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="marks-row">
+        <button class="mark-btn red" id="markRed" aria-label="Mark red" title="Mark red (1)"></button>
+        <button class="mark-btn yellow" id="markYellow" aria-label="Mark yellow" title="Mark yellow (2)"></button>
+        <button class="mark-btn green" id="markGreen" aria-label="Mark green" title="Mark green (3)"></button>
+      </div>
+    </div>
+
+    <div class="hint hint-touch">tap to flip &nbsp;·&nbsp; swipe left for next &nbsp;·&nbsp; swipe right to go back</div>
+    <div class="hint hint-desktop">click card or <kbd>space</kbd> to flip &nbsp;·&nbsp; <kbd>enter</kbd> next card &nbsp;·&nbsp; <kbd>←</kbd> back &nbsp;·&nbsp; <kbd>v</kbd> listen &nbsp;·&nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mark</div>
+  </div>
+
+  <div class="bottombar">
+    <div class="shuffle-group">
+      <button class="switch" id="shuffleSwitch" role="switch" aria-checked="false" aria-label="Toggle shuffle">
+        <div class="knob"></div>
+      </button>
+      <span class="shuffle-label">shuffle</span>
+    </div>
+
+    <div class="bank-group">
+      <div class="bank-filename" id="bankFilename">Hiragana_vocab_-_Monkeytype.csv</div>
+      <button class="bank-btn" id="editBankBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        edit word bank
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close-btn" id="closeModalBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <h2>Edit word bank</h2>
+    <p class="sub">Drop in a new CSV to replace the current deck.</p>
+
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      <div class="dz-title">Drag &amp; drop a CSV file here</div>
+      <div class="dz-sub">or click to browse</div>
+      <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+    </div>
+
+    <div class="modal-note">Expected format: two columns — hiragana/katakana word, then English translation — with a header row on top.</div>
+    <div class="modal-error" id="modalError">That file didn't look like a valid word list. Please check the format and try again.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // ---------- default deck (embedded) ----------
+  var DEFAULT_FILENAME = "Hiragana_vocab_-_Monkeytype.csv";
+  var DEFAULT_PAIRS = [["にんげん", "human / person"], ["じんるい", "humanity / humankind"], ["ひと", "person"], ["おとこ", "man"], ["おとこのひと", "man / male person"], ["おとこのこ", "boy"], ["おんな", "woman"], ["おんなのひと", "woman / female person"], ["おんなのこ", "girl"], ["あかちゃん", "baby"], ["わかもの", "young person"], ["わたし", "I / me"], ["わたくし", "I / me (formal)"], ["ぼく", "I / me (typically male)"], ["おれ", "I / me (rough male)"], ["あたし", "I / me (casual, typically female)"], ["しょうじょ", "girl / young girl"], ["しょうねん", "boy / young boy"], ["かんごし", "nurse"], ["かんごふ", "nurse (female; older term)"], ["しかい", "dentist"], ["せいじか", "politician"], ["べんごし", "lawyer"], ["しょうぼうし", "firefighter"], ["けいさつかん", "police officer"], ["へいし", "soldier"], ["けんちくか", "architect"], ["せんせい", "teacher"], ["きょうし", "teacher / instructor"], ["かしゅ", "singer"], ["かかと", "heel"], ["すね", "shin"], ["ひざ", "knee"], ["もも", "thigh"], ["あたま", "head"], ["かお", "face"], ["くち", "mouth"], ["くちびる", "lips"], ["め", "eye"], ["ひげ", "beard / mustache"], ["みみ", "ear"], ["うで", "arm"], ["ひじ", "elbow"], ["かた", "shoulder"], ["つめ", "nail / claw"], ["てくび", "wrist"], ["てのひら", "palm"], ["ゆび", "finger"], ["しり", "buttocks"], ["かんぞう", "liver"], ["きも", "liver / guts"], ["きんにく", "muscle"], ["くび", "neck"], ["こころ", "heart / mind"], ["こし", "waist / lower back"], ["しんぞう", "heart"], ["せなか", "back"], ["ち", "blood"], ["にく", "meat / flesh"], ["はだ", "skin"], ["ひふ", "skin"], ["ほね", "bone"], ["むね", "chest / breast"], ["げり", "diarrhea"], ["びょうき", "illness / disease"], ["りょうしん", "parents"], ["こども", "child"], ["ちち", "father"], ["はは", "mother"], ["つま", "wife"], ["おっと", "husband"], ["あに", "older brother"], ["あね", "older sister"], ["おとうと", "younger brother"], ["いもうと", "younger sister"], ["きょうだい", "siblings"], ["しまい", "sisters"], ["そふ", "grandfather"], ["そぼ", "grandmother"], ["まご", "grandchild"], ["おじ", "uncle"], ["おば", "aunt"], ["いとこ", "cousin"], ["めい", "niece"], ["おい", "nephew"], ["ばけもの", "monster"], ["いぬ", "dog"], ["ねこ", "cat"], ["うし", "cow"], ["ぶた", "pig"], ["うま", "horse"], ["ひつじ", "sheep"], ["さる", "monkey"], ["ねずみ", "mouse / rat"], ["とら", "tiger"], ["うさぎ", "rabbit"], ["りゅう", "dragon"], ["がま", "toad"], ["しし", "lion"], ["ぞう", "elephant"], ["とり", "bird"], ["にわとり", "chicken / hen"], ["すずめ", "sparrow"], ["からす", "crow"], ["わし", "eagle"], ["たか", "hawk / falcon"], ["さかな", "fish"], ["えび", "shrimp"], ["いわし", "sardine"], ["まぐろ", "tuna"], ["かつお", "bonito"], ["さんま", "Pacific saury"], ["あじ", "horse mackerel"], ["さば", "mackerel"], ["むし", "insect / bug"], ["ちょう", "butterfly"], ["せみ", "cicada"], ["かい", "shellfish / shell"], ["かいがら", "seashell"], ["へび", "snake"], ["くま", "bear"], ["くさ", "grass"], ["み", "fruit / seed"], ["き", "tree"], ["くき", "stem"], ["きのこ", "mushroom"], ["さくら", "cherry blossom / cherry tree"], ["まつ", "pine tree"], ["うめ", "plum"], ["いね", "rice plant"], ["むぎ", "wheat / barley"], ["やさい", "vegetable"], ["くだもの", "fruit"], ["いも", "potato / tuber"], ["まめ", "bean"], ["だいこん", "daikon / Japanese radish"], ["にんじん", "carrot"], ["ちょうしょく", "breakfast"], ["ひるごはん", "lunch"], ["ばんごはん", "dinner"], ["ごはん", "rice / meal"], ["みそ", "miso"], ["りょうり", "cooking / dish"], ["おやつ", "snack"], ["たこやき", "takoyaki"], ["ちゃ", "tea"], ["おちゃ", "tea"], ["ぎゅうにゅう", "milk"], ["みず", "water"], ["しょうゆ", "soy sauce"], ["とき", "time"], ["こよみ", "calendar"], ["ふん", "minute"], ["びょう", "second"], ["とし", "year"], ["きのう", "yesterday"], ["きょう", "today"], ["あした", "tomorrow"], ["あさ", "morning"], ["ひる", "noon / daytime"], ["ゆうがた", "evening"], ["ばん", "evening / night"], ["よる", "night"], ["ようび", "day of the week"], ["しゅう", "week"], ["いっしゅうかん", "one week"], ["げつようび", "Monday"], ["かようび", "Tuesday"], ["すいようび", "Wednesday"], ["もくようび", "Thursday"], ["きんようび", "Friday"], ["どようび", "Saturday"], ["ほし", "star"], ["てんき", "weather"], ["はれ", "clear weather / sunny"], ["あめ", "rain"], ["くもり", "cloudy weather"], ["ゆき", "snow"], ["かみなり", "thunder / lightning"], ["たいふう", "typhoon"], ["あらし", "storm"], ["そら", "sky"], ["ひがし", "east"], ["みなみ", "south"], ["にし", "west"], ["ここ", "here"], ["そこ", "there"], ["あそこ", "over there"], ["みぎ", "right"], ["ひだり", "left"], ["うえ", "above / up"], ["した", "below / down"], ["まえ", "front / before"], ["うしろ", "behind / back"], ["むこう", "opposite side / over there"], ["ななめ", "diagonal / slanted"], ["てまえ", "in front of / this side"], ["とおい", "far"], ["ちかい", "near / close"], ["ゆ", "hot water / bath"], ["こおり", "ice"], ["ゆげ", "steam"], ["くうき", "air"], ["つち", "earth / soil"], ["きんぞく", "metal"], ["どろ", "mud"], ["けむり", "smoke"], ["てつ", "iron"], ["きん", "gold"], ["ぎん", "silver"], ["なまり", "lead"], ["けいざい", "economy"], ["かいしゃ", "company"], ["かいぎ", "meeting"], ["がっこう", "school"], ["やくしょ", "government office"], ["みせ", "shop / store"], ["こうじょう", "factory"], ["かね", "money"], ["さつ", "bill / banknote"], ["こぜに", "small change / coins"], ["つりせん", "change (money returned)"], ["じどうはんばいき", "vending machine"], ["きっぷ", "ticket"], ["きって", "stamp"], ["つくえ", "desk"], ["いす", "chair"], ["たたみ", "tatami mat"], ["とびら", "door"], ["まど", "window"], ["ふとん", "futon"], ["げんかん", "entrance / entryway"], ["いえ", "house / home"], ["でんき", "electricity / light"], ["ひも", "string / cord"], ["なわ", "rope"], ["ふくろ", "bag / sack"], ["かばん", "bag / briefcase"], ["かさ", "umbrella"], ["かぎ", "key / lock"], ["ちょうこく", "sculpture / carving"], ["まんねんひつ", "fountain pen"], ["えんぴつ", "pencil"], ["ふで", "brush / writing brush"], ["えんぴつけずり", "pencil sharpener"], ["じょうぎ", "ruler"], ["にっき", "diary"], ["ふうとう", "envelope"], ["はさみ", "scissors"], ["ようふく", "Western-style clothes"], ["きもの", "kimono"], ["わふく", "Japanese clothes"], ["そで", "sleeve"], ["えり", "collar"], ["くつ", "shoes"], ["くつした", "socks"], ["めがね", "glasses"], ["えき", "station"], ["ひこうき", "airplane"], ["くうこう", "airport"], ["みち", "road / way"], ["どうろ", "road"], ["とおり", "street / avenue"], ["でんしゃ", "train"], ["くるま", "car"], ["じてんしゃ", "bicycle"], ["じ", "character / letter / o'clock"], ["かんじ", "kanji"], ["ひらがな", "hiragana"], ["すうじ", "number / numeral"], ["がいこくご", "foreign language"], ["にほんご", "Japanese language"], ["えいご", "English"], ["ちゅうごくご", "Chinese"], ["どいつご", "German"], ["すぺいんご", "Spanish"], ["ふらんすご", "French"], ["ちょうせんご", "Korean"], ["てがみ", "letter"], ["しんぶん", "newspaper"], ["じしょ", "dictionary"], ["あか", "red"], ["きいろ", "yellow"], ["みどり", "green"], ["あお", "blue"], ["むらさき", "purple"], ["しろ", "white"], ["くろ", "black"], ["ちゃいろ", "brown"], ["はいいろ", "gray"], ["おんがく", "music"], ["りか", "science"], ["さんすう", "arithmetic / mathematics"], ["れきし", "history"], ["ちり", "geography"], ["たいいく", "physical education"], ["じょうほう", "information"], ["ひつよう", "necessary / necessity"], ["べんきょう", "study"], ["いらい", "request / since"], ["いち", "one"], ["さん", "three"], ["よん", "four"], ["ご", "five"], ["ろく", "six"], ["なな", "seven"], ["はち", "eight"], ["きゅう", "nine"], ["じゅう", "ten"], ["ひゃく", "hundred"], ["せん", "thousand"], ["まん", "ten thousand"], ["ひとつ", "one thing"], ["ふたつ", "two things"], ["みっつ", "three things"], ["よっつ", "four things"], ["いつつ", "five things"], ["むっつ", "six things"], ["ななつ", "seven things"], ["やっつ", "eight things"], ["ここのつ", "nine things"], ["とお", "ten things"], ["それ", "that"], ["あれ", "that over there"], ["どれ", "which"], ["こちら", "this way / this person"], ["そちら", "that way / that person"], ["あちら", "that way over there / that person over there"], ["どちら", "which way / which one / who"], ["ひみつ", "secret"], ["じどう", "automatic / child (context-dependent)"], ["ないよう", "contents / details"], ["はば", "width"], ["せいしき", "formal / official / proper"], ["けっこん", "marriage"], ["げんざい", "present / current"], ["いま", "now"], ["かこ", "past"], ["みらい", "future"], ["いい", "good"], ["すごい", "amazing / great"], ["すばらしい", "wonderful"], ["わるい", "bad"], ["たかい", "high / expensive"], ["ひくい", "low"], ["やすい", "cheap / inexpensive"], ["おおきい", "big"], ["ちいさい", "small"], ["ほそい", "thin / slender"], ["ふとい", "thick / fat"], ["ふるい", "old"], ["あたらしい", "new"], ["わかい", "young"], ["かるい", "light"], ["おもい", "heavy"], ["やさしい", "easy / kind"], ["むずかしい", "difficult"], ["やわらかい", "soft"], ["かたい", "hard"], ["あつい", "hot"], ["つめたい", "cold to the touch"], ["さむい", "cold (weather)"], ["おいしい", "delicious"], ["うまい", "delicious / skillful"], ["まずい", "bad-tasting / awkward"], ["あまい", "sweet"], ["からい", "spicy / hot"], ["しょっぱい", "salty"], ["にがい", "bitter"], ["うつくしい", "beautiful"], ["たのしい", "fun / enjoyable"], ["かなしい", "sad"], ["さびしい", "lonely"], ["さみしい", "lonely"], ["こわい", "scary / afraid"], ["いたい", "painful / hurts"], ["かゆい", "itchy"], ["くさい", "smelly"], ["つらい", "painful / tough"], ["やる", "to do / give"], ["ある", "to exist / have (inanimate)"], ["なる", "to become"], ["あらわれる", "to appear"], ["いきる", "to live"], ["うむ", "to give birth"], ["しぬ", "to die"], ["こわれる", "to break / be broken"], ["いく", "to go"], ["くる", "to come"], ["あるく", "to walk"], ["とぶ", "to fly / jump"], ["およぐ", "to swim"], ["おどる", "to dance"], ["ねる", "to sleep"], ["うたう", "to sing"], ["かむ", "to bite / chew"], ["たべる", "to eat"], ["のむ", "to drink"], ["なげる", "to throw"], ["もつ", "to hold / have"], ["うつ", "to hit / shoot / type"], ["なぐる", "to punch"], ["ける", "to kick"], ["すわる", "to sit"], ["たつ", "to stand"], ["はしる", "to run"], ["こむ", "to be crowded / enter"], ["いる", "to exist / be (animate)"], ["かわく", "to dry / become dry"], ["みだす", "to disturb / disrupt"], ["みだれる", "to become disordered"], ["つかえる", "to be usable / work"], ["そなわる", "to be equipped with"], ["すぐれる", "to excel / be superior"], ["ひえる", "to cool / become cold"], ["むく", "to face / turn toward"], ["たおれる", "to fall / collapse"], ["かたまる", "to harden / solidify"], ["うまる", "to be filled / buried"], ["うもれる", "to be buried"], ["ふえる", "to increase"], ["へる", "to decrease"], ["はずれる", "to come off / be disconnected"], ["ふとる", "to gain weight / get fat"], ["はじまる", "to begin"], ["おわる", "to end"], ["きめる", "to decide"], ["かぐ", "to smell / sniff"], ["かたる", "to tell / narrate"], ["かく", "to write / draw"], ["よむ", "to read"], ["つくる", "to make"], ["なおす", "to fix / correct"], ["すてる", "to throw away"], ["とる", "to take"], ["なく", "to cry"], ["わらう", "to laugh / smile"], ["ほめる", "to praise"], ["しかる", "to scold"], ["よろこぶ", "to be pleased / rejoice"], ["よろこび", "joy / delight"], ["なぐさめる", "to comfort"], ["あきる", "to get bored / tire of"], ["おどろく", "to be surprised"], ["あう", "to meet"], ["あける", "to open"], ["あそぶ", "to play"], ["あつまる", "to gather"], ["うる", "to sell"], ["える", "to obtain / gain"], ["おる", "to fold / be (humble)"], ["かう", "to buy"], ["はく", "to put on (shoes/pants) / sweep"], ["しる", "to know"], ["つかれる", "to get tired"], ["でかける", "to go out"], ["はたらく", "to work"], ["やすむ", "to rest / take a break"], ["もう", "already / anymore"], ["まだ", "still / not yet"], ["ずっと", "all the time / continuously"], ["とても", "very"], ["こう", "like this / this way"], ["そう", "like that / that way"], ["ああ", "like that / oh"], ["しばしば", "often"], ["この", "this"], ["その", "that"], ["あの", "that over there"], ["どの", "which"], ["はい", "yes"], ["いいえ", "no"], ["しかし", "however / but"], ["それに", "besides / moreover"], ["なぜなら", "because"], ["う", "uh / auxiliary ending"], ["せる", "causative auxiliary"], ["れる", "passive / potential auxiliary"], ["そうだ", "it seems / I hear that"], ["た", "past auxiliary"], ["だろう", "probably / I suppose"], ["ない", "not / there isn't"], ["ぬ", "not (literary auxiliary)"], ["が", "but / subject particle"], ["で", "at / by / with"], ["へ", "to / toward"], ["から", "from / because"], ["より", "than / from"], ["を", "object particle"], ["および", "and / as well as"], ["かも", "might / maybe"], ["それとも", "or / or else"], ["だの", "such as / things like"], ["つつ", "while / despite"], ["ながら", "while / although"], ["ならびに", "and / as well as"], ["なり", "or / as soon as"], ["ので", "because / since"], ["また", "also / again"], ["または", "or / alternatively"], ["や", "and / things like"], ["な", "sentence-ending particle / don't"], ["かしら", "I wonder"], ["さ", "sentence-ending emphasis"], ["っけ", "remind-me / was it...?"], ["こそ", "emphasis particle"], ["さえ", "even / only"], ["すら", "even"], ["くらい", "about / approximately / to the extent"], ["ぐらい", "about / approximately / to the extent"], ["だけ", "only / just"], ["だって", "but / because / even"], ["ったら", "as for / speaking of"], ["って", "quoting particle / called"], ["どころ", "place / point / far from"], ["など", "etc. / things like"], ["なら", "if / as for"], ["なんか", "things like / such as"], ["なんて", "such as / how...!"], ["ばかり", "only / nothing but / just"], ["ばっかり", "only / nothing but (casual)"], ["おなか", "stomach / belly"], ["はな", "flower / nose"], ["は", "topic particle"], ["つき", "moon / month"], ["かぜ", "wind / cold"], ["ひ", "fire / sun / day"], ["しお", "salt"], ["かみ", "hair / paper / god"], ["かえる", "frog / to return"], ["さす", "to point / hold up / sting"], ["さめる", "to wake up / cool down"], ["きく", "to hear / listen / ask"], ["さわる", "to touch"], ["おく", "to put / place"], ["おこる", "to get angry / occur"], ["きる", "to cut / wear"], ["しめる", "to close / fasten"], ["はなす", "to speak / let go"], ["わかれる", "to separate / part"], ["どう", "how / what kind"], ["たい", "want to / -tai ending"], ["ます", "polite verb ending"], ["と", "and / with / quotation particle"], ["に", "to / at / in / on"], ["そして", "and / and then"], ["て", "hand / te-form ending"], ["の", "of / possessive particle"], ["ね", "right? / isn't it?"], ["か", "question particle / or"], ["しか", "only (with negative)"], ["でも", "but / even / or something"], ["まで", "until / up to"], ["も", "also / too"]];
+
+  // ---------- state ----------
+  var deck = [];          // {jp, en, mark: null|'green'|'yellow'|'red'}
+  var currentIndex = 0;
+  var flipped = false;
+  var shuffleOn = false;
+  var currentFilename = DEFAULT_FILENAME;
+
+  var WEIGHTS = { none: 10, red: 6, yellow: 3, green: 1 };
+
+  // ---------- dom ----------
+  var cardEl = document.getElementById('card');
+  var faceLabelEl = document.getElementById('faceLabel');
+  var wordDisplayEl = document.getElementById('wordDisplay');
+  var markIndicatorEl = document.getElementById('markIndicator');
+  var progressEl = document.getElementById('progress');
+  var listenBtn = document.getElementById('listenBtn');
+  var markGreenBtn = document.getElementById('markGreen');
+  var markYellowBtn = document.getElementById('markYellow');
+  var markRedBtn = document.getElementById('markRed');
+  var shuffleSwitch = document.getElementById('shuffleSwitch');
+  var bankFilenameEl = document.getElementById('bankFilename');
+  var editBankBtn = document.getElementById('editBankBtn');
+  var overlay = document.getElementById('overlay');
+  var closeModalBtn = document.getElementById('closeModalBtn');
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var modalError = document.getElementById('modalError');
+
+  // ---------- deck loading ----------
+  function loadDeck(pairs, filename){
+    deck = pairs.map(function(p){
+      return { jp: p[0], en: p[1], mark: null };
+    });
+    currentIndex = 0;
+    flipped = false;
+    if (typeof resetHistory === 'function') resetHistory();
+    currentFilename = filename;
+    bankFilenameEl.textContent = filename;
+    bankFilenameEl.title = filename;
+    render(false);
+  }
+
+  // ---------- rendering ----------
+  function render(animateSwap){
+    var card = deck[currentIndex];
+    if (!card){ return; }
+
+    faceLabelEl.textContent = flipped ? 'english' : 'japanese';
+    faceLabelEl.className = 'face-label' + (flipped ? ' back' : '');
+    wordDisplayEl.textContent = flipped ? card.en : card.jp;
+    wordDisplayEl.className = 'word-display' + (flipped ? ' is-back' : '');
+
+    cardEl.classList.toggle('is-back', flipped);
+    cardEl.classList.toggle('is-front', !flipped);
+
+    if (card.mark){
+      markIndicatorEl.classList.add('show');
+      markIndicatorEl.style.background = colorFor(card.mark);
+    } else {
+      markIndicatorEl.classList.remove('show');
+      markIndicatorEl.style.background = 'transparent';
+    }
+
+    markGreenBtn.classList.toggle('active', card.mark === 'green');
+    markYellowBtn.classList.toggle('active', card.mark === 'yellow');
+    markRedBtn.classList.toggle('active', card.mark === 'red');
+
+    progressEl.textContent = (currentIndex + 1) + ' / ' + deck.length;
+
+    if (animateSwap){
+      wordDisplayEl.classList.remove('card-swap');
+      void wordDisplayEl.offsetWidth; // reflow to restart animation
+      wordDisplayEl.classList.add('card-swap');
+    }
+  }
+
+  function colorFor(mark){
+    if (mark === 'green') return getCssVar('--green');
+    if (mark === 'yellow') return getCssVar('--yellow');
+    if (mark === 'red') return getCssVar('--red');
+    return 'transparent';
+  }
+
+  function getCssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  // ---------- flip ----------
+  function flipCard(){
+    flipped = !flipped;
+    wordDisplayEl.classList.remove('flipping');
+    void wordDisplayEl.offsetWidth;
+    wordDisplayEl.classList.add('flipping');
+    setTimeout(function(){
+      var card = deck[currentIndex];
+      faceLabelEl.textContent = flipped ? 'english' : 'japanese';
+      faceLabelEl.className = 'face-label' + (flipped ? ' back' : '');
+      wordDisplayEl.textContent = flipped ? card.en : card.jp;
+      wordDisplayEl.className = 'word-display flipping' + (flipped ? ' is-back' : '');
+      cardEl.classList.toggle('is-back', flipped);
+      cardEl.classList.toggle('is-front', !flipped);
+    }, 150);
+  }
+
+  // ---------- marking ----------
+  function markCurrent(color){
+    var card = deck[currentIndex];
+    if (!card) return;
+    card.mark = color; // overwrite with the newly selected color
+    render(false);
+  }
+
+  // ---------- navigation ----------
+  function weightedNextIndex(){
+    var n = deck.length;
+    if (n <= 1) return 0;
+    var pool = [];
+    for (var i = 0; i < n; i++){
+      if (i === currentIndex) continue;
+      var mark = deck[i].mark || 'none';
+      pool.push({ index: i, weight: WEIGHTS[mark] });
+    }
+    var total = pool.reduce(function(sum, p){ return sum + p.weight; }, 0);
+    var r = Math.random() * total;
+    var acc = 0;
+    for (var j = 0; j < pool.length; j++){
+      acc += pool[j].weight;
+      if (r < acc) return pool[j].index;
+    }
+    return pool[pool.length - 1].index;
+  }
+
+  // History of the cards actually shown, so "back" retraces the real order
+  // (including shuffled order). Going back then forward replays the same cards.
+  var history = [0];
+  var historyPos = 0;
+  var HISTORY_LIMIT = 2000;
+
+  function resetHistory(){
+    history = [currentIndex];
+    historyPos = 0;
+  }
+
+  // Drop any "forward" cards so a new order (e.g. shuffle toggled) takes effect.
+  function truncateForward(){
+    history = history.slice(0, historyPos + 1);
+  }
+
+  function showIndex(i){
+    currentIndex = i;
+    flipped = false;
+    render(true);
+  }
+
+  function nextCard(){
+    if (deck.length === 0) return false;
+    if (historyPos < history.length - 1){
+      historyPos++;
+      showIndex(history[historyPos]);
+      return true;
+    }
+    var nextIdx = shuffleOn ? weightedNextIndex() : (currentIndex + 1) % deck.length;
+    history.push(nextIdx);
+    if (history.length > HISTORY_LIMIT){ history.shift(); }
+    historyPos = history.length - 1;
+    showIndex(nextIdx);
+    return true;
+  }
+
+  function prevCard(){
+    if (deck.length === 0) return false;
+    if (historyPos > 0){
+      historyPos--;
+      showIndex(history[historyPos]);
+      return true;
+    }
+    // At the start of history: in CSV order we can still step back through the list.
+    if (!shuffleOn && deck.length > 1){
+      var prevIdx = (currentIndex - 1 + deck.length) % deck.length;
+      history.unshift(prevIdx);
+      if (history.length > HISTORY_LIMIT){ history.pop(); }
+      historyPos = 0;
+      showIndex(prevIdx);
+      return true;
+    }
+    return false; // nothing earlier to go back to
+  }
+
+  // ---------- speech ----------
+  var cachedVoices = [];
+  function refreshVoices(){
+    cachedVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  }
+  if (window.speechSynthesis){
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  }
+
+  function speakCurrent(){
+    if (!window.speechSynthesis) return;
+    var card = deck[currentIndex];
+    if (!card) return;
+    window.speechSynthesis.cancel();
+    var utter = new SpeechSynthesisUtterance(card.jp);
+    utter.lang = 'ja-JP';
+    utter.rate = 0.75;
+    var jaVoice = cachedVoices.find(function(v){ return v.lang && v.lang.toLowerCase().indexOf('ja') === 0; });
+    if (jaVoice) utter.voice = jaVoice;
+    listenBtn.classList.add('speaking');
+    utter.onend = function(){ listenBtn.classList.remove('speaking'); };
+    utter.onerror = function(){ listenBtn.classList.remove('speaking'); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  // ---------- CSV parsing ----------
+  function parseCSV(text){
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++){
+      var ch = text[i];
+      var next = text[i + 1];
+      if (inQuotes){
+        if (ch === '"' && next === '"'){ field += '"'; i++; }
+        else if (ch === '"'){ inQuotes = false; }
+        else { field += ch; }
+      } else {
+        if (ch === '"'){ inQuotes = true; }
+        else if (ch === ','){ row.push(field); field = ''; }
+        else if (ch === '\r'){ /* ignore, \n handles row end */ }
+        else if (ch === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+        else { field += ch; }
+      }
+    }
+    if (field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length > 0 && !(r.length === 1 && r[0].trim() === ''); });
+  }
+
+  function looksLikeHeader(cell){
+    return /^[a-zA-Z][a-zA-Z\s\/\-]*$/.test((cell || '').trim());
+  }
+
+  function pairsFromCSV(text){
+    var rows = parseCSV(text);
+    if (rows.length === 0) return [];
+    var startIdx = 0;
+    if (looksLikeHeader(rows[0][0])){ startIdx = 1; }
+    var pairs = [];
+    for (var i = startIdx; i < rows.length; i++){
+      var r = rows[i];
+      if (!r || r.length < 2) continue;
+      var jp = (r[0] || '').trim();
+      var en = (r[1] || '').trim();
+      if (!jp) continue;
+      pairs.push([jp, en]);
+    }
+    return pairs;
+  }
+
+  function handleFile(file){
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var pairs = pairsFromCSV(String(e.target.result));
+      if (pairs.length === 0){
+        modalError.classList.add('show');
+        return;
+      }
+      modalError.classList.remove('show');
+      loadDeck(pairs, file.name);
+      closeModal();
+    };
+    reader.onerror = function(){
+      modalError.classList.add('show');
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------- modal ----------
+  function openModal(){
+    modalError.classList.remove('show');
+    overlay.classList.add('open');
+  }
+  function closeModal(){
+    overlay.classList.remove('open');
+  }
+
+  // ---------- event wiring ----------
+  var suppressClick = false;
+  cardEl.addEventListener('click', function(){
+    if (suppressClick){ suppressClick = false; return; }
+    flipCard();
+  });
+
+  // ---------- swipe (touch) ----------
+  var SWIPE_THRESHOLD = 60;   // px of horizontal travel needed to change card
+  var touchStartX = 0, touchStartY = 0, dragX = 0;
+  var tracking = false, horizontal = null, animating = false;
+
+  function setCardOffset(x, withAnim){
+    cardEl.classList.toggle('slide-anim', !!withAnim);
+    cardEl.style.transform = x ? 'translateX(' + x + 'px) rotate(' + (x / 28) + 'deg)' : '';
+    cardEl.style.opacity = x ? String(Math.max(0.35, 1 - Math.abs(x) / 600)) : '';
+  }
+
+  // dir: -1 = swiped right-to-left (next), +1 = swiped left-to-right (previous)
+  function swipeTo(dir){
+    animating = true;
+    var outX = dir * window.innerWidth;
+    setCardOffset(outX, true);
+    setTimeout(function(){
+      var changed = dir < 0 ? nextCard() : prevCard();
+      // new card enters from the opposite side
+      setCardOffset(changed ? -outX * 0.6 : 0, false);
+      void cardEl.offsetWidth;
+      setCardOffset(0, true);
+      setTimeout(function(){ cardEl.classList.remove('slide-anim'); animating = false; }, 210);
+    }, 190);
+  }
+
+  cardEl.addEventListener('touchstart', function(e){
+    if (animating || e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    dragX = 0;
+    tracking = true;
+    horizontal = null;
+  }, { passive: true });
+
+  cardEl.addEventListener('touchmove', function(e){
+    if (!tracking) return;
+    var dx = e.touches[0].clientX - touchStartX;
+    var dy = e.touches[0].clientY - touchStartY;
+    if (horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)){
+      horizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (horizontal){
+      e.preventDefault();
+      dragX = dx;
+      setCardOffset(dx, false);
+    }
+  }, { passive: false });
+
+  function endTouch(){
+    if (!tracking) return;
+    tracking = false;
+    if (!horizontal) return;
+    suppressClick = true;
+    setTimeout(function(){ suppressClick = false; }, 400);
+    if (dragX <= -SWIPE_THRESHOLD){
+      swipeTo(-1);
+    } else if (dragX >= SWIPE_THRESHOLD){
+      if (!shuffleOn || historyPos > 0){
+        swipeTo(1);
+      } else {
+        setCardOffset(0, true); // nothing to go back to yet
+      }
+    } else {
+      setCardOffset(0, true);
+    }
+  }
+  cardEl.addEventListener('touchend', endTouch);
+  cardEl.addEventListener('touchcancel', endTouch);
+
+  listenBtn.addEventListener('click', function(e){ e.stopPropagation(); speakCurrent(); });
+  markGreenBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('green'); });
+  markYellowBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('yellow'); });
+  markRedBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('red'); });
+
+  shuffleSwitch.addEventListener('click', function(){
+    shuffleOn = !shuffleOn;
+    truncateForward();
+    shuffleSwitch.classList.toggle('on', shuffleOn);
+    shuffleSwitch.setAttribute('aria-checked', String(shuffleOn));
+  });
+
+  editBankBtn.addEventListener('click', openModal);
+  closeModalBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){
+    if (e.target === overlay) closeModal();
+  });
+
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  dropzone.addEventListener('dragover', function(e){
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', function(){
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', function(e){
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    var file = e.dataTransfer.files && e.dataTransfer.files[0];
+    handleFile(file);
+  });
+  fileInput.addEventListener('change', function(e){
+    var file = e.target.files && e.target.files[0];
+    handleFile(file);
+  });
+
+  document.addEventListener('keydown', function(e){
+    var modalOpen = overlay.classList.contains('open');
+    if (modalOpen){
+      if (e.key === 'Escape'){ closeModal(); }
+      return;
+    }
+    if (e.code === 'Space'){
+      e.preventDefault();
+      flipCard();
+    } else if (e.code === 'Enter'){
+      e.preventDefault();
+      nextCard();
+    } else if (e.key === 'ArrowRight'){
+      nextCard();
+    } else if (e.key === 'ArrowLeft'){
+      prevCard();
+    } else if (e.key === '1'){
+      markCurrent('red');
+    } else if (e.key === '2'){
+      markCurrent('yellow');
+    } else if (e.key === '3'){
+      markCurrent('green');
+    } else if (e.key.toLowerCase() === 'v'){
+      speakCurrent();
+    }
+  });
+
+  // ---------- init ----------
+  loadDeck(DEFAULT_PAIRS, DEFAULT_FILENAME);
+})();
+</script>
+
+</body>
+</html>
