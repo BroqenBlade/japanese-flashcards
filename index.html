@@ -11,9 +11,9 @@
 <title>Kana Flashcards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400&family=Zen+Maru+Gothic:wght@500;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Klee+One&family=Zen+Maru+Gothic:wght@500;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
+    :root{
     --bg: #0c0e14;
     --bg-glow-blue: rgba(91,140,255,0.14);
     --bg-glow-pink: rgba(255,111,160,0.12);
@@ -38,12 +38,25 @@
     --shadow-card: 0 24px 60px -20px rgba(0,0,0,0.65);
   }
 
+  /* UD Digi Kyokasho: maps every common installed name to one family */
+  @font-face{
+    font-family: 'UD Digi Kyokasho';
+    font-weight: 400;
+    src:
+      local('UD デジタル 教科書体 N-R'),
+      local('UD デジタル 教科書体 NK-R'),
+      local('UD デジタル 教科書体 NP-R'),
+      local('UD Digi Kyokasho N-R'),
+      local('UD Digi Kyokasho NK-R'),
+      local('UD Digi Kyokasho NP-R'),
+      local('UDDigiKyokashoN-R'),
+      local('UDDigiKyokashoNK-R'),
+      local('UDDigiKyokashoNP-R');
+  }
+
   *{ box-sizing: border-box; }
 
-  html, body{
-    height: 100%;
-    margin: 0;
-  }
+  html, body{ height: 100%; margin: 0; }
 
   body{
     font-family: 'Nunito', system-ui, sans-serif;
@@ -57,6 +70,8 @@
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
   }
+
+  button{ font-family: inherit; }
 
   .app{
     flex: 1;
@@ -72,7 +87,7 @@
   /* ---------- header ---------- */
   .topbar{
     width: 100%;
-    max-width: 920px;
+    max-width: 1100px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -87,7 +102,6 @@
     align-items: center;
     gap: 8px;
   }
-
   .brand .kana{
     background: linear-gradient(120deg, var(--blue), var(--pink));
     -webkit-background-clip: text;
@@ -101,17 +115,233 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ---------- main stage ---------- */
-  .stage{
+  /* ---------- main layout: card sits in the true center column ---------- */
+  .main{
     flex: 1;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 540px;
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 420px) 1fr;
+    column-gap: 32px;
+    align-items: center;
+  }
+
+  .side-col{
+    grid-column: 1;
+    justify-self: end;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .stage{
+    grid-column: 2;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    width: 100%;
   }
 
+  /* ---------- front-side toggle ---------- */
+  .side-toggle{
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px 16px;
+    box-shadow: var(--shadow-card);
+  }
+  .side-toggle-title{
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-transform: lowercase;
+  }
+  .side-toggle-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .side-opt{
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.25s ease;
+  }
+  .side-opt.jp.active{ color: var(--pink); }
+  .side-opt.en.active{ color: var(--blue); }
+
+  .side-switch{
+    width: 58px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    position: relative;
+    cursor: pointer;
+    background: var(--pink);
+    transition: background 0.25s ease;
+  }
+  .side-switch .knob{
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    transition: transform 0.25s ease;
+  }
+  .side-switch.en{ background: var(--blue); }
+  .side-switch.en .knob{ transform: translateX(26px); }
+
+  /* ---------- sidebar (word bank table) ---------- */
+  .sidebar{
+    width: 100%;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 12px 10px 10px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .sidebar-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 10px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 8px;
+  }
+  .sidebar-head-text{
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .sidebar-title{
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+    text-transform: lowercase;
+  }
+  .sidebar-count{
+    font-size: 12px;
+    color: var(--muted-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .add-btn{
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .add-btn svg{ width: 22px; height: 22px; }
+  .add-btn:hover{ border-color: var(--pink); background: var(--pink-dim); color: var(--pink); }
+  .add-btn:active{ transform: scale(0.92); }
+
+  .bank-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .bank-empty{
+    padding: 22px 10px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted-soft);
+    line-height: 1.5;
+  }
+
+  .bank-item{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .bank-item:hover{ background: var(--surface-2); }
+  .bank-item.active{
+    background: var(--blue-dim);
+    border-color: rgba(106,147,255,0.35);
+  }
+
+  .bank-name-btn{
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+  }
+  .bank-name{
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bank-meta{
+    display: block;
+    font-size: 11.5px;
+    color: var(--muted-soft);
+    margin-top: 1px;
+  }
+  .bank-item.active .bank-meta{ color: var(--muted); }
+
+  .icon-btn{
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .icon-btn svg{ width: 15px; height: 15px; }
+  .icon-btn.view:hover{ background: var(--blue-dim); color: var(--blue); }
+  .icon-btn.remove:hover{ background: rgba(255,112,112,0.16); color: var(--red); }
+
+  /* ---------- card ---------- */
   .card{
     width: min(90vw, 420px);
     min-height: 440px;
@@ -124,23 +354,15 @@
     flex-direction: column;
     cursor: pointer;
     user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: pan-y;
     transition: box-shadow 0.4s ease, border-color 0.4s ease;
     position: relative;
-    will-change: transform;
   }
-  .card.slide-anim{
-    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.4s ease, border-color 0.4s ease;
-  }
-
-  .card.is-back{
+  /* japanese = pink, english = blue */
+  .card.is-jp{
     box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02) inset, 0 0 46px -18px rgba(255,123,171,0.35);
     border-color: rgba(255,123,171,0.28);
   }
-  .card.is-front{
+  .card.is-en{
     box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02) inset, 0 0 46px -18px rgba(106,147,255,0.32);
     border-color: rgba(106,147,255,0.24);
   }
@@ -156,22 +378,20 @@
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.2px;
-    color: var(--blue);
+    color: var(--pink);
     transition: color 0.25s ease;
   }
-  .face-label.back{ color: var(--pink); }
+  .face-label.jp{ color: var(--pink); }
+  .face-label.en{ color: var(--blue); }
 
   .mark-indicator{
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: transparent;
-    box-shadow: none;
     transition: all 0.2s ease;
   }
-  .mark-indicator.show{
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
-  }
+  .mark-indicator.show{ box-shadow: 0 0 0 3px rgba(255,255,255,0.03); }
 
   .card-body{
     flex: 1;
@@ -182,7 +402,7 @@
   }
 
   .word-display{
-    font-family: 'HGKyokashotai', 'HGSKyokashotai', 'HGPKyokashotai', 'UD Digital Kyokasho N-R', 'UDデジタル教科書体', 'YuKyokasho Yoko', 'Klee One', 'Zen Maru Gothic', serif;
+    font-family: 'UD Digi Kyokasho', 'UD デジタル 教科書体 N-R', 'UD Digi Kyokasho N-R', 'YuKyokasho Yoko', 'Klee One', 'Zen Maru Gothic', serif;
     font-weight: 400;
     font-size: clamp(30px, 7vw, 44px);
     line-height: 1.3;
@@ -190,15 +410,19 @@
     word-break: keep-all;
     transform: perspective(600px) rotateY(0deg);
   }
-  .word-display.is-back{
+  .word-display.is-en{
     font-family: 'Nunito', sans-serif;
     font-size: clamp(20px, 4.6vw, 26px);
     font-weight: 600;
     color: var(--text);
   }
-  .word-display.flipping{
-    animation: flipY 0.32s ease;
+  .word-display.is-empty{
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted-soft);
   }
+  .word-display.flipping{ animation: flipY 0.32s ease; }
   @keyframes flipY{
     0%{ transform: perspective(600px) rotateY(0deg); opacity: 1; }
     48%{ transform: perspective(600px) rotateY(90deg); opacity: 0.25; }
@@ -206,9 +430,7 @@
     100%{ transform: perspective(600px) rotateY(0deg); opacity: 1; }
   }
 
-  .card-swap{
-    animation: swapFade 0.22s ease;
-  }
+  .card-swap{ animation: swapFade 0.22s ease; }
   @keyframes swapFade{
     0%{ opacity: 0.15; transform: translateY(4px); }
     100%{ opacity: 1; transform: translateY(0); }
@@ -220,34 +442,34 @@
     padding: 6px 0 18px;
   }
 
+  /* listen button plays the japanese audio, so it uses the japanese (pink) color */
   .listen-btn{
     width: 46px;
     height: 46px;
     border-radius: 50%;
-    border: 1px solid rgba(106,147,255,0.35);
-    background: var(--blue-dim);
-    color: var(--blue);
+    border: 1px solid rgba(255,123,171,0.35);
+    background: var(--pink-dim);
+    color: var(--pink);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: transform 0.15s ease, background 0.2s ease;
   }
-  .listen-btn:hover{ background: rgba(106,147,255,0.26); }
+  .listen-btn:hover{ background: rgba(255,123,171,0.26); }
   .listen-btn:active{ transform: scale(0.92); }
   .listen-btn svg{ width: 20px; height: 20px; }
   .listen-btn.speaking{ animation: pulse 0.9s ease infinite; }
   @keyframes pulse{
-    0%{ box-shadow: 0 0 0 0 rgba(106,147,255,0.45); }
-    70%{ box-shadow: 0 0 0 10px rgba(106,147,255,0); }
-    100%{ box-shadow: 0 0 0 0 rgba(106,147,255,0); }
+    0%{ box-shadow: 0 0 0 0 rgba(255,123,171,0.45); }
+    70%{ box-shadow: 0 0 0 10px rgba(255,123,171,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(255,123,171,0); }
   }
 
   .marks-row{
     display: flex;
     justify-content: center;
     gap: 22px;
-    padding-top: 4px;
     border-top: 1px solid var(--border-soft);
     margin-top: auto;
     padding-top: 18px;
@@ -273,7 +495,14 @@
     box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
   }
 
+  /* hint hangs below the card so the card itself stays centered */
   .hint{
+    position: absolute;
+    top: calc(100% + 16px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: min(90vw, 560px);
     font-size: 12.5px;
     color: var(--muted-soft);
     text-align: center;
@@ -291,23 +520,14 @@
   /* ---------- bottom bar ---------- */
   .bottombar{
     width: 100%;
-    max-width: 920px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-  }
-
-  .shuffle-group{
+    max-width: 1100px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
   }
 
-  .shuffle-label{
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-  }
+  .shuffle-group{ display: flex; align-items: center; gap: 10px; }
+  .shuffle-label{ font-size: 14px; font-weight: 600; color: var(--muted); }
 
   .switch{
     width: 46px;
@@ -334,50 +554,9 @@
     background: linear-gradient(120deg, var(--blue), var(--pink));
     border-color: transparent;
   }
-  .switch.on .knob{
-    transform: translateX(20px);
-    background: #fff;
-  }
+  .switch.on .knob{ transform: translateX(20px); background: #fff; }
 
-  .bank-group{
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-  }
-
-  .bank-filename{
-    font-size: 12.5px;
-    color: var(--muted-soft);
-    max-width: 240px;
-    text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .bank-btn{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .bank-btn:hover{
-    border-color: var(--pink);
-    background: var(--pink-dim);
-  }
-  .bank-btn svg{ width: 16px; height: 16px; }
-
-  /* ---------- modal ---------- */
+  /* ---------- modals ---------- */
   .overlay{
     position: fixed;
     inset: 0;
@@ -405,16 +584,17 @@
     transition: transform 0.2s ease;
   }
   .overlay.open .modal{ transform: translateY(0); }
+  .modal.wide{ width: min(92vw, 560px); }
 
   .modal h2{
     margin: 0 0 4px;
     font-size: 19px;
+    padding-right: 36px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .modal p.sub{
-    margin: 0 0 20px;
-    font-size: 13.5px;
-    color: var(--muted);
-  }
+  .modal p.sub{ margin: 0 0 20px; font-size: 13.5px; color: var(--muted); }
 
   .close-btn{
     position: absolute;
@@ -434,58 +614,107 @@
   .close-btn:hover{ color: var(--text); }
   .close-btn svg{ width: 14px; height: 14px; }
 
-  .dropzone{
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-md);
-    padding: 34px 18px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .dropzone.dragover{
-    border-color: var(--blue);
-    background: var(--blue-dim);
-  }
-  .dropzone svg{
-    width: 30px;
-    height: 30px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .dropzone .dz-title{
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 4px;
-  }
-  .dropzone .dz-sub{
-    font-size: 12.5px;
-    color: var(--muted);
-  }
 
-  .modal-note{
-    margin-top: 16px;
-    font-size: 12px;
-    color: var(--muted-soft);
-    line-height: 1.5;
-  }
+  .modal-note{ margin-top: 16px; font-size: 12px; color: var(--muted-soft); line-height: 1.5; }
 
-  .modal-error{
-    margin-top: 14px;
-    font-size: 13px;
-    color: var(--red);
-    display: none;
-  }
+  .modal-error{ margin-top: 14px; font-size: 13px; color: var(--red); display: none; }
   .modal-error.show{ display: block; }
 
-  .hint-touch{ display: none; }
-  @media (hover: none) and (pointer: coarse){
-    .hint-desktop{ display: none; }
-    .hint-touch{ display: block; }
-    .mark-btn{ width: 34px; height: 34px; }
-    .marks-row{ gap: 30px; }
-    .listen-btn{ width: 52px; height: 52px; }
+  /* view modal */
+  .view-summary{
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .view-summary span{ display: inline-flex; align-items: center; gap: 6px; }
+
+  .sort-row{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .sort-label{ font-size: 12.5px; font-weight: 700; color: var(--muted); margin-right: 4px; }
+
+  .chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover{ color: var(--text); }
+  .chip.active{
+    color: var(--text);
+    border-color: rgba(106,147,255,0.6);
+    background: var(--blue-dim);
   }
 
+  .dot{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  .dot.green{ background: var(--green); }
+  .dot.yellow{ background: var(--yellow); }
+  .dot.red{ background: var(--red); }
+  .dot.none{ background: transparent; border: 1.5px solid var(--muted-soft); }
+
+  .word-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .word-row{
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1.3fr);
+    align-items: center;
+    gap: 12px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .word-row:last-child{ border-bottom: none; }
+  .word-row:hover{ background: var(--surface-2); }
+  .word-row .jp{
+    font-family: 'UD Digi Kyokasho', 'UD デジタル 教科書体 N-R', 'UD Digi Kyokasho N-R', 'YuKyokasho Yoko', 'Klee One', 'Zen Maru Gothic', serif;
+    font-size: 19px;
+  }
+  .word-row .en{ font-size: 13.5px; color: var(--muted); }
+
+
+  /* ---------- responsive (desktop widths) ---------- */
+  /* not enough room for a mirrored side column: center the sidebar + card group instead */
+  @media (max-width: 1080px){
+    .main{
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+    }
+    .side-col{ flex-shrink: 0; }
+  }
+
+  /* ---------- v4 additions ---------- */
   .app{
     padding-left: max(24px, env(safe-area-inset-left));
     padding-right: max(24px, env(safe-area-inset-right));
@@ -493,10 +722,232 @@
     padding-bottom: max(22px, env(safe-area-inset-bottom));
   }
 
-  @media (max-width: 480px){
-    .bottombar{ flex-direction: column; align-items: stretch; gap: 18px; }
-    .bank-group{ align-items: flex-start; }
-    .bank-filename{ text-align: left; max-width: none; }
+  /* swipe */
+  .card{
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: pan-y;
+    will-change: transform;
+  }
+  .card:focus{ outline: none; }
+  .card.slide-anim{
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+
+  /* speaker only on the japanese side */
+  .listen-btn.is-hidden{ visibility: hidden; pointer-events: none; }
+
+  .add-btn svg.spin, .bar-btn svg.spin{ animation: spin 0.9s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  /* sidebar footer: sync status */
+  .sidebar-foot{
+    border-top: 1px solid var(--border-soft);
+    margin-top: 8px;
+    padding: 9px 8px 2px;
+    font-size: 12px;
+    color: var(--muted-soft);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .sync-dot{
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--muted-soft);
+  }
+  .sync-dot.ok{ background: var(--green); }
+  .sync-dot.busy{ background: var(--blue); }
+  .sync-dot.warn{ background: var(--yellow); }
+  .sync-dot.err{ background: var(--red); }
+
+  /* ---------- word banks panel ---------- */
+  .panel-list{
+    max-height: 42vh;
+    margin-bottom: 14px;
+    padding: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+  }
+  .panel-actions{
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 16px;
+  }
+  .pill-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .pill-btn:hover{ border-color: var(--blue); background: var(--blue-dim); }
+  .pill-btn svg{ width: 15px; height: 15px; }
+  .pill-btn.primary{
+    background: linear-gradient(120deg, var(--blue), var(--pink));
+    border-color: transparent;
+    color: #fff;
+  }
+  .pill-btn:disabled{ opacity: 0.55; cursor: default; }
+
+  .sheet-settings{
+    border-top: 1px solid var(--border-soft);
+    padding-top: 14px;
+  }
+  .sheet-settings summary{
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+  }
+  .sheet-settings summary::-webkit-details-marker{ display: none; }
+  .sheet-settings summary::before{
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 9px 2px 2px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+  }
+  .sheet-settings[open] summary::before{ transform: rotate(45deg); }
+  .url-row{
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .url-input{
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 16px; /* 16px stops iOS from zooming into the field */
+  }
+  .url-input:focus{ outline: none; border-color: var(--blue); }
+  .modal-ok{ margin-top: 12px; font-size: 13px; color: var(--green); display: none; }
+  .modal-ok.show{ display: block; }
+
+  /* ---------- phone-only pieces (hidden on desktop) ---------- */
+  .bankbar{ display: none; }
+  .m-progress, .m-side, .hint-touch{ display: none; }
+
+  .bankbar{
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: min(90vw, 420px);
+    margin-bottom: 16px;
+  }
+  .bar-btn{
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .bar-btn svg{ width: 17px; height: 17px; }
+  .bar-btn:active{ transform: scale(0.92); }
+  .bar-btn.view:hover{ color: var(--blue); border-color: rgba(106,147,255,0.5); }
+  .bar-btn.swap:hover{ color: var(--pink); border-color: rgba(255,123,171,0.5); }
+  .bankbar-text{
+    min-width: 0;
+    margin-left: 6px;
+    display: flex;
+    flex-direction: column;
+  }
+  .bankbar-name{
+    font-size: 15px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bankbar-status{
+    font-size: 11.5px;
+    color: var(--yellow);
+    display: none;
+  }
+  .bankbar-status.show{ display: block; }
+  .bankbar-status.err{ color: var(--red); }
+
+  .m-progress{
+    font-size: 12.5px;
+    color: var(--muted-soft);
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+  }
+  .m-side{
+    justify-self: end;
+    align-items: center;
+    gap: 8px;
+  }
+  .m-side .side-opt{ font-size: 13px; }
+  .side-switch.sm{ width: 46px; height: 26px; }
+  .side-switch.sm .knob{ width: 20px; height: 20px; }
+  .side-switch.sm.en .knob{ transform: translateX(20px); }
+
+  /* ---------- phone layout ---------- */
+  @media (max-width: 820px){
+    .app{ gap: 10px; }
+    .topbar{ display: none; }
+    .side-col{ display: none; }
+    .main{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+    }
+    .bankbar{ display: flex; }
+    .card{ min-height: min(440px, 58vh); }
+    .mark-btn{ width: 34px; height: 34px; }
+    .marks-row{ gap: 30px; }
+    .listen-btn{ width: 52px; height: 52px; }
+
+    .hint{
+      position: static;
+      transform: none;
+      width: auto;
+      margin-top: 14px;
+    }
+    .hint-desktop{ display: none; }
+    .hint-touch{ display: block; }
+
+    .bottombar{
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+    }
+    .shuffle-group{ justify-self: start; }
+    .m-progress{ display: block; }
+    .m-side{ display: flex; }
+
+    .modal{ padding: 22px 18px; }
+    .word-list{ max-height: 58vh; }
   }
 </style>
 </head>
@@ -509,33 +960,81 @@
     <div class="progress" id="progress">0 / 0</div>
   </div>
 
-  <div class="stage">
-    <div class="card is-front" id="card" tabindex="0" aria-label="Flashcard, click or press space to flip">
-      <div class="card-header">
-        <div class="face-label" id="faceLabel">japanese</div>
-        <div class="mark-indicator" id="markIndicator"></div>
+  <div class="main">
+
+    <div class="side-col">
+
+      <div class="side-toggle">
+        <div class="side-toggle-title">show first</div>
+        <div class="side-toggle-row">
+          <span class="side-opt jp active" data-side="jp">japanese</span>
+          <button class="side-switch" id="sideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
+            <div class="knob"></div>
+          </button>
+          <span class="side-opt en" data-side="en">english</span>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="word-display" id="wordDisplay"></div>
-      </div>
-      <div class="listen-row">
-        <button class="listen-btn" id="listenBtn" aria-label="Listen to pronunciation" title="Listen (v)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
-            <path d="M18.5 6a9 9 0 0 1 0 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="marks-row">
-        <button class="mark-btn red" id="markRed" aria-label="Mark red" title="Mark red (1)"></button>
-        <button class="mark-btn yellow" id="markYellow" aria-label="Mark yellow" title="Mark yellow (2)"></button>
-        <button class="mark-btn green" id="markGreen" aria-label="Mark green" title="Mark green (3)"></button>
-      </div>
+
+      <aside class="sidebar" aria-label="Word banks">
+        <div class="sidebar-head">
+          <div class="sidebar-head-text">
+            <span class="sidebar-title">word banks</span>
+            <span class="sidebar-count" id="sidebarCount">0</span>
+          </div>
+          <button class="add-btn" id="sideBanksBtn" title="Word banks and sync" aria-label="Word banks and sync">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          </button>
+        </div>
+        <ul class="bank-list" id="bankList"></ul>
+        <div class="sidebar-foot"><span class="sync-dot" id="sideSyncDot"></span><span id="sideSyncText">Not connected</span></div>
+      </aside>
+
     </div>
 
-    <div class="hint hint-touch">tap to flip &nbsp;·&nbsp; swipe left for next &nbsp;·&nbsp; swipe right to go back</div>
-    <div class="hint hint-desktop">click card or <kbd>space</kbd> to flip &nbsp;·&nbsp; <kbd>enter</kbd> next card &nbsp;·&nbsp; <kbd>←</kbd> back &nbsp;·&nbsp; <kbd>v</kbd> listen &nbsp;·&nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mark</div>
+    <div class="stage">
+
+      <!-- phone: current word bank, centered above the card -->
+      <div class="bankbar">
+        <button class="bar-btn view" id="mViewBtn" title="View words" aria-label="View words">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+        <button class="bar-btn swap" id="mBanksBtn" title="Change word bank" aria-label="Change word bank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <div class="bankbar-text">
+          <span class="bankbar-name" id="mBankName">No word bank</span>
+          <span class="bankbar-status" id="mSyncStatus"></span>
+        </div>
+      </div>
+
+      <div class="card is-jp" id="card" tabindex="0" aria-label="Flashcard, tap or press space to flip">
+        <div class="card-header">
+          <div class="face-label jp" id="faceLabel">japanese</div>
+          <div class="mark-indicator" id="markIndicator"></div>
+        </div>
+        <div class="card-body">
+          <div class="word-display" id="wordDisplay"></div>
+        </div>
+        <div class="listen-row">
+          <button class="listen-btn" id="listenBtn" aria-label="Listen to pronunciation" title="Listen (v)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+              <path d="M18.5 6a9 9 0 0 1 0 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="marks-row">
+          <button class="mark-btn red" id="markRed" aria-label="Mark red" title="Mark red (1)"></button>
+          <button class="mark-btn yellow" id="markYellow" aria-label="Mark yellow" title="Mark yellow (2)"></button>
+          <button class="mark-btn green" id="markGreen" aria-label="Mark green" title="Mark green (3)"></button>
+        </div>
+      </div>
+
+      <div class="hint hint-desktop">click card or <kbd>space</kbd> to flip &nbsp;·&nbsp; <kbd>enter</kbd> next card &nbsp;·&nbsp; <kbd>←</kbd> back &nbsp;·&nbsp; <kbd>v</kbd> listen &nbsp;·&nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mark</div>
+      <div class="hint hint-touch">tap to flip &nbsp;·&nbsp; swipe left for next &nbsp;·&nbsp; swipe right to go back</div>
+    </div>
+
   </div>
 
   <div class="bottombar">
@@ -545,170 +1044,669 @@
       </button>
       <span class="shuffle-label">shuffle</span>
     </div>
-
-    <div class="bank-group">
-      <div class="bank-filename" id="bankFilename">Hiragana_vocab_-_Monkeytype.csv</div>
-      <button class="bank-btn" id="editBankBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20h9"></path>
-          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-        </svg>
-        edit word bank
+    <div class="m-progress" id="mProgress">0 / 0</div>
+    <div class="m-side" title="Side shown first">
+      <span class="side-opt jp active" data-side="jp">jp</span>
+      <button class="side-switch sm" id="mSideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
+        <div class="knob"></div>
       </button>
+      <span class="side-opt en" data-side="en">en</span>
     </div>
   </div>
 
 </div>
 
-<div class="overlay" id="overlay">
+<!-- word banks panel: switch bank, refresh, sheet connection -->
+<div class="overlay" id="banksOverlay">
   <div class="modal">
-    <button class="close-btn" id="closeModalBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-    <h2>Edit word bank</h2>
-    <p class="sub">Drop in a new CSV to replace the current deck.</p>
+    <button class="close-btn" id="closeBanksBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <h2>Word banks</h2>
+    <p class="sub" id="banksSub">Not connected to a sheet yet</p>
 
-    <div class="dropzone" id="dropzone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="17 8 12 3 7 8"></polyline>
-        <line x1="12" y1="3" x2="12" y2="15"></line>
-      </svg>
-      <div class="dz-title">Drag &amp; drop a CSV file here</div>
-      <div class="dz-sub">or click to browse</div>
-      <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+    <ul class="bank-list panel-list" id="panelBankList"></ul>
+
+    <div class="panel-actions">
+      <button class="pill-btn" id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <span>Refresh from sheet</span>
+      </button>
     </div>
 
-    <div class="modal-note">Expected format: two columns — hiragana/katakana word, then English translation — with a header row on top.</div>
-    <div class="modal-error" id="modalError">That file didn't look like a valid word list. Please check the format and try again.</div>
+    <details class="sheet-settings" id="sheetSettings">
+      <summary>Sheet connection</summary>
+      <div class="url-row">
+        <input class="url-input" id="sheetUrlInput" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your web app link (…/exec)">
+        <button class="pill-btn primary" id="saveUrlBtn">Connect</button>
+      </div>
+      <div class="modal-note">The link comes from deploying the Apps Script in your Google Sheet. It's saved on this device only.</div>
+      <div class="modal-error" id="urlError"></div>
+      <div class="modal-ok" id="urlOk"></div>
+    </details>
+  </div>
+</div>
+
+<!-- view word bank modal -->
+<div class="overlay" id="viewOverlay">
+  <div class="modal wide">
+    <button class="close-btn" id="closeViewBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <h2 id="viewTitle">Word bank</h2>
+    <p class="sub" id="viewSub"></p>
+
+    <div class="view-summary" id="viewSummary"></div>
+
+    <div class="sort-row" id="sortRow">
+      <span class="sort-label">sort</span>
+      <button class="chip" data-sort="default">original</button>
+      <button class="chip" data-sort="red"><span class="dot red"></span>red first</button>
+      <button class="chip" data-sort="yellow"><span class="dot yellow"></span>yellow first</button>
+      <button class="chip" data-sort="green"><span class="dot green"></span>green first</button>
+      <button class="chip" data-sort="none"><span class="dot none"></span>unmarked first</button>
+    </div>
+
+    <ul class="word-list" id="wordList"></ul>
   </div>
 </div>
 
 <script>
 (function(){
 
-  // ---------- default deck (embedded) ----------
-  var DEFAULT_FILENAME = "Hiragana_vocab_-_Monkeytype.csv";
-  var DEFAULT_PAIRS = [["にんげん", "human / person"], ["じんるい", "humanity / humankind"], ["ひと", "person"], ["おとこ", "man"], ["おとこのひと", "man / male person"], ["おとこのこ", "boy"], ["おんな", "woman"], ["おんなのひと", "woman / female person"], ["おんなのこ", "girl"], ["あかちゃん", "baby"], ["わかもの", "young person"], ["わたし", "I / me"], ["わたくし", "I / me (formal)"], ["ぼく", "I / me (typically male)"], ["おれ", "I / me (rough male)"], ["あたし", "I / me (casual, typically female)"], ["しょうじょ", "girl / young girl"], ["しょうねん", "boy / young boy"], ["かんごし", "nurse"], ["かんごふ", "nurse (female; older term)"], ["しかい", "dentist"], ["せいじか", "politician"], ["べんごし", "lawyer"], ["しょうぼうし", "firefighter"], ["けいさつかん", "police officer"], ["へいし", "soldier"], ["けんちくか", "architect"], ["せんせい", "teacher"], ["きょうし", "teacher / instructor"], ["かしゅ", "singer"], ["かかと", "heel"], ["すね", "shin"], ["ひざ", "knee"], ["もも", "thigh"], ["あたま", "head"], ["かお", "face"], ["くち", "mouth"], ["くちびる", "lips"], ["め", "eye"], ["ひげ", "beard / mustache"], ["みみ", "ear"], ["うで", "arm"], ["ひじ", "elbow"], ["かた", "shoulder"], ["つめ", "nail / claw"], ["てくび", "wrist"], ["てのひら", "palm"], ["ゆび", "finger"], ["しり", "buttocks"], ["かんぞう", "liver"], ["きも", "liver / guts"], ["きんにく", "muscle"], ["くび", "neck"], ["こころ", "heart / mind"], ["こし", "waist / lower back"], ["しんぞう", "heart"], ["せなか", "back"], ["ち", "blood"], ["にく", "meat / flesh"], ["はだ", "skin"], ["ひふ", "skin"], ["ほね", "bone"], ["むね", "chest / breast"], ["げり", "diarrhea"], ["びょうき", "illness / disease"], ["りょうしん", "parents"], ["こども", "child"], ["ちち", "father"], ["はは", "mother"], ["つま", "wife"], ["おっと", "husband"], ["あに", "older brother"], ["あね", "older sister"], ["おとうと", "younger brother"], ["いもうと", "younger sister"], ["きょうだい", "siblings"], ["しまい", "sisters"], ["そふ", "grandfather"], ["そぼ", "grandmother"], ["まご", "grandchild"], ["おじ", "uncle"], ["おば", "aunt"], ["いとこ", "cousin"], ["めい", "niece"], ["おい", "nephew"], ["ばけもの", "monster"], ["いぬ", "dog"], ["ねこ", "cat"], ["うし", "cow"], ["ぶた", "pig"], ["うま", "horse"], ["ひつじ", "sheep"], ["さる", "monkey"], ["ねずみ", "mouse / rat"], ["とら", "tiger"], ["うさぎ", "rabbit"], ["りゅう", "dragon"], ["がま", "toad"], ["しし", "lion"], ["ぞう", "elephant"], ["とり", "bird"], ["にわとり", "chicken / hen"], ["すずめ", "sparrow"], ["からす", "crow"], ["わし", "eagle"], ["たか", "hawk / falcon"], ["さかな", "fish"], ["えび", "shrimp"], ["いわし", "sardine"], ["まぐろ", "tuna"], ["かつお", "bonito"], ["さんま", "Pacific saury"], ["あじ", "horse mackerel"], ["さば", "mackerel"], ["むし", "insect / bug"], ["ちょう", "butterfly"], ["せみ", "cicada"], ["かい", "shellfish / shell"], ["かいがら", "seashell"], ["へび", "snake"], ["くま", "bear"], ["くさ", "grass"], ["み", "fruit / seed"], ["き", "tree"], ["くき", "stem"], ["きのこ", "mushroom"], ["さくら", "cherry blossom / cherry tree"], ["まつ", "pine tree"], ["うめ", "plum"], ["いね", "rice plant"], ["むぎ", "wheat / barley"], ["やさい", "vegetable"], ["くだもの", "fruit"], ["いも", "potato / tuber"], ["まめ", "bean"], ["だいこん", "daikon / Japanese radish"], ["にんじん", "carrot"], ["ちょうしょく", "breakfast"], ["ひるごはん", "lunch"], ["ばんごはん", "dinner"], ["ごはん", "rice / meal"], ["みそ", "miso"], ["りょうり", "cooking / dish"], ["おやつ", "snack"], ["たこやき", "takoyaki"], ["ちゃ", "tea"], ["おちゃ", "tea"], ["ぎゅうにゅう", "milk"], ["みず", "water"], ["しょうゆ", "soy sauce"], ["とき", "time"], ["こよみ", "calendar"], ["ふん", "minute"], ["びょう", "second"], ["とし", "year"], ["きのう", "yesterday"], ["きょう", "today"], ["あした", "tomorrow"], ["あさ", "morning"], ["ひる", "noon / daytime"], ["ゆうがた", "evening"], ["ばん", "evening / night"], ["よる", "night"], ["ようび", "day of the week"], ["しゅう", "week"], ["いっしゅうかん", "one week"], ["げつようび", "Monday"], ["かようび", "Tuesday"], ["すいようび", "Wednesday"], ["もくようび", "Thursday"], ["きんようび", "Friday"], ["どようび", "Saturday"], ["ほし", "star"], ["てんき", "weather"], ["はれ", "clear weather / sunny"], ["あめ", "rain"], ["くもり", "cloudy weather"], ["ゆき", "snow"], ["かみなり", "thunder / lightning"], ["たいふう", "typhoon"], ["あらし", "storm"], ["そら", "sky"], ["ひがし", "east"], ["みなみ", "south"], ["にし", "west"], ["ここ", "here"], ["そこ", "there"], ["あそこ", "over there"], ["みぎ", "right"], ["ひだり", "left"], ["うえ", "above / up"], ["した", "below / down"], ["まえ", "front / before"], ["うしろ", "behind / back"], ["むこう", "opposite side / over there"], ["ななめ", "diagonal / slanted"], ["てまえ", "in front of / this side"], ["とおい", "far"], ["ちかい", "near / close"], ["ゆ", "hot water / bath"], ["こおり", "ice"], ["ゆげ", "steam"], ["くうき", "air"], ["つち", "earth / soil"], ["きんぞく", "metal"], ["どろ", "mud"], ["けむり", "smoke"], ["てつ", "iron"], ["きん", "gold"], ["ぎん", "silver"], ["なまり", "lead"], ["けいざい", "economy"], ["かいしゃ", "company"], ["かいぎ", "meeting"], ["がっこう", "school"], ["やくしょ", "government office"], ["みせ", "shop / store"], ["こうじょう", "factory"], ["かね", "money"], ["さつ", "bill / banknote"], ["こぜに", "small change / coins"], ["つりせん", "change (money returned)"], ["じどうはんばいき", "vending machine"], ["きっぷ", "ticket"], ["きって", "stamp"], ["つくえ", "desk"], ["いす", "chair"], ["たたみ", "tatami mat"], ["とびら", "door"], ["まど", "window"], ["ふとん", "futon"], ["げんかん", "entrance / entryway"], ["いえ", "house / home"], ["でんき", "electricity / light"], ["ひも", "string / cord"], ["なわ", "rope"], ["ふくろ", "bag / sack"], ["かばん", "bag / briefcase"], ["かさ", "umbrella"], ["かぎ", "key / lock"], ["ちょうこく", "sculpture / carving"], ["まんねんひつ", "fountain pen"], ["えんぴつ", "pencil"], ["ふで", "brush / writing brush"], ["えんぴつけずり", "pencil sharpener"], ["じょうぎ", "ruler"], ["にっき", "diary"], ["ふうとう", "envelope"], ["はさみ", "scissors"], ["ようふく", "Western-style clothes"], ["きもの", "kimono"], ["わふく", "Japanese clothes"], ["そで", "sleeve"], ["えり", "collar"], ["くつ", "shoes"], ["くつした", "socks"], ["めがね", "glasses"], ["えき", "station"], ["ひこうき", "airplane"], ["くうこう", "airport"], ["みち", "road / way"], ["どうろ", "road"], ["とおり", "street / avenue"], ["でんしゃ", "train"], ["くるま", "car"], ["じてんしゃ", "bicycle"], ["じ", "character / letter / o'clock"], ["かんじ", "kanji"], ["ひらがな", "hiragana"], ["すうじ", "number / numeral"], ["がいこくご", "foreign language"], ["にほんご", "Japanese language"], ["えいご", "English"], ["ちゅうごくご", "Chinese"], ["どいつご", "German"], ["すぺいんご", "Spanish"], ["ふらんすご", "French"], ["ちょうせんご", "Korean"], ["てがみ", "letter"], ["しんぶん", "newspaper"], ["じしょ", "dictionary"], ["あか", "red"], ["きいろ", "yellow"], ["みどり", "green"], ["あお", "blue"], ["むらさき", "purple"], ["しろ", "white"], ["くろ", "black"], ["ちゃいろ", "brown"], ["はいいろ", "gray"], ["おんがく", "music"], ["りか", "science"], ["さんすう", "arithmetic / mathematics"], ["れきし", "history"], ["ちり", "geography"], ["たいいく", "physical education"], ["じょうほう", "information"], ["ひつよう", "necessary / necessity"], ["べんきょう", "study"], ["いらい", "request / since"], ["いち", "one"], ["さん", "three"], ["よん", "four"], ["ご", "five"], ["ろく", "six"], ["なな", "seven"], ["はち", "eight"], ["きゅう", "nine"], ["じゅう", "ten"], ["ひゃく", "hundred"], ["せん", "thousand"], ["まん", "ten thousand"], ["ひとつ", "one thing"], ["ふたつ", "two things"], ["みっつ", "three things"], ["よっつ", "four things"], ["いつつ", "five things"], ["むっつ", "six things"], ["ななつ", "seven things"], ["やっつ", "eight things"], ["ここのつ", "nine things"], ["とお", "ten things"], ["それ", "that"], ["あれ", "that over there"], ["どれ", "which"], ["こちら", "this way / this person"], ["そちら", "that way / that person"], ["あちら", "that way over there / that person over there"], ["どちら", "which way / which one / who"], ["ひみつ", "secret"], ["じどう", "automatic / child (context-dependent)"], ["ないよう", "contents / details"], ["はば", "width"], ["せいしき", "formal / official / proper"], ["けっこん", "marriage"], ["げんざい", "present / current"], ["いま", "now"], ["かこ", "past"], ["みらい", "future"], ["いい", "good"], ["すごい", "amazing / great"], ["すばらしい", "wonderful"], ["わるい", "bad"], ["たかい", "high / expensive"], ["ひくい", "low"], ["やすい", "cheap / inexpensive"], ["おおきい", "big"], ["ちいさい", "small"], ["ほそい", "thin / slender"], ["ふとい", "thick / fat"], ["ふるい", "old"], ["あたらしい", "new"], ["わかい", "young"], ["かるい", "light"], ["おもい", "heavy"], ["やさしい", "easy / kind"], ["むずかしい", "difficult"], ["やわらかい", "soft"], ["かたい", "hard"], ["あつい", "hot"], ["つめたい", "cold to the touch"], ["さむい", "cold (weather)"], ["おいしい", "delicious"], ["うまい", "delicious / skillful"], ["まずい", "bad-tasting / awkward"], ["あまい", "sweet"], ["からい", "spicy / hot"], ["しょっぱい", "salty"], ["にがい", "bitter"], ["うつくしい", "beautiful"], ["たのしい", "fun / enjoyable"], ["かなしい", "sad"], ["さびしい", "lonely"], ["さみしい", "lonely"], ["こわい", "scary / afraid"], ["いたい", "painful / hurts"], ["かゆい", "itchy"], ["くさい", "smelly"], ["つらい", "painful / tough"], ["やる", "to do / give"], ["ある", "to exist / have (inanimate)"], ["なる", "to become"], ["あらわれる", "to appear"], ["いきる", "to live"], ["うむ", "to give birth"], ["しぬ", "to die"], ["こわれる", "to break / be broken"], ["いく", "to go"], ["くる", "to come"], ["あるく", "to walk"], ["とぶ", "to fly / jump"], ["およぐ", "to swim"], ["おどる", "to dance"], ["ねる", "to sleep"], ["うたう", "to sing"], ["かむ", "to bite / chew"], ["たべる", "to eat"], ["のむ", "to drink"], ["なげる", "to throw"], ["もつ", "to hold / have"], ["うつ", "to hit / shoot / type"], ["なぐる", "to punch"], ["ける", "to kick"], ["すわる", "to sit"], ["たつ", "to stand"], ["はしる", "to run"], ["こむ", "to be crowded / enter"], ["いる", "to exist / be (animate)"], ["かわく", "to dry / become dry"], ["みだす", "to disturb / disrupt"], ["みだれる", "to become disordered"], ["つかえる", "to be usable / work"], ["そなわる", "to be equipped with"], ["すぐれる", "to excel / be superior"], ["ひえる", "to cool / become cold"], ["むく", "to face / turn toward"], ["たおれる", "to fall / collapse"], ["かたまる", "to harden / solidify"], ["うまる", "to be filled / buried"], ["うもれる", "to be buried"], ["ふえる", "to increase"], ["へる", "to decrease"], ["はずれる", "to come off / be disconnected"], ["ふとる", "to gain weight / get fat"], ["はじまる", "to begin"], ["おわる", "to end"], ["きめる", "to decide"], ["かぐ", "to smell / sniff"], ["かたる", "to tell / narrate"], ["かく", "to write / draw"], ["よむ", "to read"], ["つくる", "to make"], ["なおす", "to fix / correct"], ["すてる", "to throw away"], ["とる", "to take"], ["なく", "to cry"], ["わらう", "to laugh / smile"], ["ほめる", "to praise"], ["しかる", "to scold"], ["よろこぶ", "to be pleased / rejoice"], ["よろこび", "joy / delight"], ["なぐさめる", "to comfort"], ["あきる", "to get bored / tire of"], ["おどろく", "to be surprised"], ["あう", "to meet"], ["あける", "to open"], ["あそぶ", "to play"], ["あつまる", "to gather"], ["うる", "to sell"], ["える", "to obtain / gain"], ["おる", "to fold / be (humble)"], ["かう", "to buy"], ["はく", "to put on (shoes/pants) / sweep"], ["しる", "to know"], ["つかれる", "to get tired"], ["でかける", "to go out"], ["はたらく", "to work"], ["やすむ", "to rest / take a break"], ["もう", "already / anymore"], ["まだ", "still / not yet"], ["ずっと", "all the time / continuously"], ["とても", "very"], ["こう", "like this / this way"], ["そう", "like that / that way"], ["ああ", "like that / oh"], ["しばしば", "often"], ["この", "this"], ["その", "that"], ["あの", "that over there"], ["どの", "which"], ["はい", "yes"], ["いいえ", "no"], ["しかし", "however / but"], ["それに", "besides / moreover"], ["なぜなら", "because"], ["う", "uh / auxiliary ending"], ["せる", "causative auxiliary"], ["れる", "passive / potential auxiliary"], ["そうだ", "it seems / I hear that"], ["た", "past auxiliary"], ["だろう", "probably / I suppose"], ["ない", "not / there isn't"], ["ぬ", "not (literary auxiliary)"], ["が", "but / subject particle"], ["で", "at / by / with"], ["へ", "to / toward"], ["から", "from / because"], ["より", "than / from"], ["を", "object particle"], ["および", "and / as well as"], ["かも", "might / maybe"], ["それとも", "or / or else"], ["だの", "such as / things like"], ["つつ", "while / despite"], ["ながら", "while / although"], ["ならびに", "and / as well as"], ["なり", "or / as soon as"], ["ので", "because / since"], ["また", "also / again"], ["または", "or / alternatively"], ["や", "and / things like"], ["な", "sentence-ending particle / don't"], ["かしら", "I wonder"], ["さ", "sentence-ending emphasis"], ["っけ", "remind-me / was it...?"], ["こそ", "emphasis particle"], ["さえ", "even / only"], ["すら", "even"], ["くらい", "about / approximately / to the extent"], ["ぐらい", "about / approximately / to the extent"], ["だけ", "only / just"], ["だって", "but / because / even"], ["ったら", "as for / speaking of"], ["って", "quoting particle / called"], ["どころ", "place / point / far from"], ["など", "etc. / things like"], ["なら", "if / as for"], ["なんか", "things like / such as"], ["なんて", "such as / how...!"], ["ばかり", "only / nothing but / just"], ["ばっかり", "only / nothing but (casual)"], ["おなか", "stomach / belly"], ["はな", "flower / nose"], ["は", "topic particle"], ["つき", "moon / month"], ["かぜ", "wind / cold"], ["ひ", "fire / sun / day"], ["しお", "salt"], ["かみ", "hair / paper / god"], ["かえる", "frog / to return"], ["さす", "to point / hold up / sting"], ["さめる", "to wake up / cool down"], ["きく", "to hear / listen / ask"], ["さわる", "to touch"], ["おく", "to put / place"], ["おこる", "to get angry / occur"], ["きる", "to cut / wear"], ["しめる", "to close / fasten"], ["はなす", "to speak / let go"], ["わかれる", "to separate / part"], ["どう", "how / what kind"], ["たい", "want to / -tai ending"], ["ます", "polite verb ending"], ["と", "and / with / quotation particle"], ["に", "to / at / in / on"], ["そして", "and / and then"], ["て", "hand / te-form ending"], ["の", "of / possessive particle"], ["ね", "right? / isn't it?"], ["か", "question particle / or"], ["しか", "only (with negative)"], ["でも", "but / even / or something"], ["まで", "until / up to"], ["も", "also / too"]];
+  // ---------- configuration ----------
+  // Optional: paste your Apps Script web app link here to skip the in-app
+  // "Sheet connection" step on every device. Leave it empty to keep the link
+  // out of this file (it's visible to anyone if the file is on public GitHub).
+  var DEFAULT_SHEET_URL = '';
+
+  var STORAGE_KEY = 'kanaFlashcards.v4';
+  var LEGACY_KEY = 'kanaFlashcards.v1';
+  var WEIGHTS = { none: 10, red: 6, yellow: 3, green: 1 };
+  var MARKS = ['red', 'yellow', 'green'];
+  var HISTORY_LIMIT = 2000;
+  var RESYNC_AFTER_MS = 20000;   // re-check the sheet when the app comes back to the foreground
+  var FLUSH_DELAY_MS = 700;      // batch quick successive marks into one write
 
   // ---------- state ----------
-  var deck = [];          // {jp, en, mark: null|'green'|'yellow'|'red'}
-  var currentIndex = 0;
+  var banks = [];          // [{ id, sheetId, name, index, cards: [{jp, en, mark, row}] }]
+  var activeId = null;
   var flipped = false;
   var shuffleOn = false;
-  var currentFilename = DEFAULT_FILENAME;
-
-  var WEIGHTS = { none: 10, red: 6, yellow: 3, green: 1 };
+  var frontSide = 'jp';    // which side is shown first: 'jp' or 'en'
+  var sheetUrl = '';
+  var sheetTitle = '';
+  var pending = [];        // marks not yet written to the sheet: [{deck, row, jp, en, mark}]
+  var lastSync = 0;
+  var legacyMarks = null;  // marks carried over from the previous version, applied on first sync
+  var syncState = 'idle';  // idle | syncing | ok | offline | error
+  var syncError = '';
+  var viewBankId = null;
+  var viewSort = 'default';
+  var histories = {};      // bankId -> { list: [card indexes], pos }
 
   // ---------- dom ----------
-  var cardEl = document.getElementById('card');
-  var faceLabelEl = document.getElementById('faceLabel');
-  var wordDisplayEl = document.getElementById('wordDisplay');
-  var markIndicatorEl = document.getElementById('markIndicator');
-  var progressEl = document.getElementById('progress');
-  var listenBtn = document.getElementById('listenBtn');
-  var markGreenBtn = document.getElementById('markGreen');
-  var markYellowBtn = document.getElementById('markYellow');
-  var markRedBtn = document.getElementById('markRed');
-  var shuffleSwitch = document.getElementById('shuffleSwitch');
-  var bankFilenameEl = document.getElementById('bankFilename');
-  var editBankBtn = document.getElementById('editBankBtn');
-  var overlay = document.getElementById('overlay');
-  var closeModalBtn = document.getElementById('closeModalBtn');
-  var dropzone = document.getElementById('dropzone');
-  var fileInput = document.getElementById('fileInput');
-  var modalError = document.getElementById('modalError');
+  function $(id){ return document.getElementById(id); }
+  var cardEl = $('card');
+  var faceLabelEl = $('faceLabel');
+  var wordDisplayEl = $('wordDisplay');
+  var markIndicatorEl = $('markIndicator');
+  var progressEl = $('progress');
+  var mProgressEl = $('mProgress');
+  var listenBtn = $('listenBtn');
+  var markGreenBtn = $('markGreen');
+  var markYellowBtn = $('markYellow');
+  var markRedBtn = $('markRed');
+  var shuffleSwitch = $('shuffleSwitch');
+  var sideSwitches = [$('sideSwitch'), $('mSideSwitch')];
+  var sideOpts = Array.prototype.slice.call(document.querySelectorAll('.side-opt'));
+  var bankListEl = $('bankList');
+  var sidebarCountEl = $('sidebarCount');
+  var sideBanksBtn = $('sideBanksBtn');
+  var sideSyncDot = $('sideSyncDot');
+  var sideSyncText = $('sideSyncText');
+  var mViewBtn = $('mViewBtn');
+  var mBanksBtn = $('mBanksBtn');
+  var mBankName = $('mBankName');
+  var mSyncStatus = $('mSyncStatus');
+  var banksOverlay = $('banksOverlay');
+  var closeBanksBtn = $('closeBanksBtn');
+  var banksSub = $('banksSub');
+  var panelBankList = $('panelBankList');
+  var refreshBtn = $('refreshBtn');
+  var sheetSettings = $('sheetSettings');
+  var sheetUrlInput = $('sheetUrlInput');
+  var saveUrlBtn = $('saveUrlBtn');
+  var urlError = $('urlError');
+  var urlOk = $('urlOk');
+  var viewOverlay = $('viewOverlay');
+  var closeViewBtn = $('closeViewBtn');
+  var viewTitle = $('viewTitle');
+  var viewSub = $('viewSub');
+  var viewSummary = $('viewSummary');
+  var sortRow = $('sortRow');
+  var wordListEl = $('wordList');
 
-  // ---------- deck loading ----------
-  function loadDeck(pairs, filename){
-    deck = pairs.map(function(p){
-      return { jp: p[0], en: p[1], mark: null };
-    });
-    currentIndex = 0;
-    flipped = false;
-    if (typeof resetHistory === 'function') resetHistory();
-    currentFilename = filename;
-    bankFilenameEl.textContent = filename;
-    bankFilenameEl.title = filename;
-    render(false);
+  // ---------- helpers ----------
+  function findBank(id){
+    for (var i = 0; i < banks.length; i++){ if (banks[i].id === id) return banks[i]; }
+    return null;
+  }
+  function activeBank(){ return findBank(activeId); }
+  function currentCard(){
+    var b = activeBank();
+    return b ? (b.cards[b.index] || null) : null;
+  }
+  function validMark(m){ return MARKS.indexOf(m) >= 0 ? m : null; }
+  function cardKey(jp, en){ return jp + '\u0001' + en; }
+  function plural(n, word){ return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+  function svgIcon(){
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var p = document.createElementNS(ns, 'path');
+    p.setAttribute('d', 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z');
+    var c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', 12); c.setAttribute('cy', 12); c.setAttribute('r', 3);
+    svg.appendChild(p); svg.appendChild(c);
+    return svg;
   }
 
-  // ---------- rendering ----------
-  function render(animateSwap){
-    var card = deck[currentIndex];
-    if (!card){ return; }
+  // ---------- persistence ----------
+  function save(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        banks: banks,
+        activeId: activeId,
+        shuffleOn: shuffleOn,
+        frontSide: frontSide,
+        sheetUrl: sheetUrl,
+        sheetTitle: sheetTitle,
+        pending: pending,
+        lastSync: lastSync,
+        legacyMarks: legacyMarks
+      }));
+    } catch (err) { /* storage unavailable or full; app keeps working in memory */ }
+  }
 
-    faceLabelEl.textContent = flipped ? 'english' : 'japanese';
-    faceLabelEl.className = 'face-label' + (flipped ? ' back' : '');
-    wordDisplayEl.textContent = flipped ? card.en : card.jp;
-    wordDisplayEl.className = 'word-display' + (flipped ? ' is-back' : '');
+  function readJSON(key){
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (err) { return null; }
+  }
 
-    cardEl.classList.toggle('is-back', flipped);
-    cardEl.classList.toggle('is-front', !flipped);
+  function loadState(){
+    var data = readJSON(STORAGE_KEY);
+    if (data && Array.isArray(data.banks)){
+      banks = data.banks.filter(function(b){
+        return b && typeof b.id === 'string' && Array.isArray(b.cards);
+      }).map(function(b){
+        return {
+          id: b.id,
+          sheetId: b.sheetId,
+          name: String(b.name || 'Word bank'),
+          index: Math.min(Math.max(parseInt(b.index, 10) || 0, 0), Math.max(b.cards.length - 1, 0)),
+          cards: b.cards.map(function(c){
+            return { jp: String(c.jp), en: String(c.en || ''), mark: validMark(c.mark), row: c.row };
+          })
+        };
+      });
+      shuffleOn = !!data.shuffleOn;
+      frontSide = data.frontSide === 'en' ? 'en' : 'jp';
+      sheetUrl = typeof data.sheetUrl === 'string' ? data.sheetUrl : '';
+      sheetTitle = String(data.sheetTitle || '');
+      pending = Array.isArray(data.pending) ? data.pending : [];
+      lastSync = Number(data.lastSync) || 0;
+      legacyMarks = data.legacyMarks && typeof data.legacyMarks === 'object' ? data.legacyMarks : null;
+      activeId = findBank(data.activeId) ? data.activeId : (banks[0] ? banks[0].id : null);
+    } else {
+      // first run of this version: carry over settings and marks from v3 if present
+      var old = readJSON(LEGACY_KEY);
+      if (old && Array.isArray(old.banks)){
+        shuffleOn = !!old.shuffleOn;
+        frontSide = old.frontSide === 'en' ? 'en' : 'jp';
+        var map = {}, count = 0;
+        old.banks.forEach(function(b){
+          (b.cards || []).forEach(function(c){
+            if (validMark(c.mark)){ map[cardKey(String(c.jp), String(c.en || ''))] = c.mark; count++; }
+          });
+        });
+        legacyMarks = count ? map : null;
+      }
+    }
+    if (!sheetUrl && DEFAULT_SHEET_URL) sheetUrl = DEFAULT_SHEET_URL;
+    save();
+  }
 
-    if (card.mark){
+  // ---------- sheet sync ----------
+  function setSync(state, message){
+    syncState = state;
+    syncError = message || '';
+    renderSync();
+  }
+
+  function withParams(url, params){
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + params;
+  }
+
+  function fetchDecks(){
+    return fetch(withParams(sheetUrl, 'action=decks&t=' + Date.now()), { cache: 'no-store', redirect: 'follow' })
+      .then(function(res){
+        if (!res.ok) throw new Error('The sheet answered with an error (' + res.status + ').');
+        return res.text();
+      })
+      .then(function(text){
+        var data;
+        try { data = JSON.parse(text); }
+        catch (err){ throw new Error('That link didn\'t return word banks. Check it ends in /exec and the deployment allows "Anyone".'); }
+        if (!data || !data.ok || !Array.isArray(data.decks)) throw new Error((data && data.error) || 'The sheet returned something unexpected.');
+        return data;
+      });
+  }
+
+  function postMarks(updates){
+    return fetch(sheetUrl, {
+      method: 'POST',
+      // text/plain keeps this a "simple" request, which Apps Script accepts from any page
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'marks', updates: updates }),
+      redirect: 'follow'
+    }).then(function(res){ return res.text(); })
+      .then(function(text){
+        var data = JSON.parse(text);
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Could not save marks.');
+        return data;
+      });
+  }
+
+  var flushing = null;
+  var flushTimer = null;
+
+  function scheduleFlush(){
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(function(){
+      flushPending().then(function(){
+        if (syncState !== 'syncing') setSync('ok');
+      }, function(){
+        if (syncState !== 'syncing') setSync(navigator.onLine === false ? 'offline' : 'error', 'Marks will be saved when the sheet is reachable.');
+      });
+    }, FLUSH_DELAY_MS);
+  }
+
+  // writes waiting marks to the sheet; resolves when done (or nothing to do)
+  function flushPending(){
+    if (!sheetUrl || pending.length === 0) return Promise.resolve();
+    if (flushing) return flushing.then(flushPending);
+    var batch = pending.slice(0, 500);
+    flushing = postMarks(batch).then(function(){
+      // every item was either written or refers to a word that no longer exists: drop them
+      pending = pending.filter(function(p){ return batch.indexOf(p) < 0; });
+      save();
+      renderSync();
+    }).then(function(){ flushing = null; }, function(err){ flushing = null; throw err; });
+    return flushing;
+  }
+
+  function enqueueMark(bank, card){
+    if (bank.sheetId === undefined || bank.sheetId === null) return;
+    pending = pending.filter(function(p){
+      return !(p.deck === bank.sheetId && p.jp === card.jp && p.en === card.en);
+    });
+    pending.push({ deck: bank.sheetId, row: card.row, jp: card.jp, en: card.en, mark: card.mark || '' });
+    save();
+    renderSync();
+    scheduleFlush();
+  }
+
+  function signature(bank){
+    return bank.cards.length + ':' + bank.cards.map(function(c){ return c.jp; }).join('|');
+  }
+
+  function mergeDecks(data){
+    var old = {};
+    banks.forEach(function(b){ old[b.id] = b; });
+
+    banks = data.decks.map(function(d){
+      var id = 's' + d.id;
+      var cards = (d.rows || []).map(function(r){
+        return { jp: String(r[0]), en: String(r[1] || ''), mark: validMark(r[2]), row: r[3] };
+      });
+      var bank = { id: id, sheetId: d.id, name: String(d.name), index: 0, cards: cards };
+      var prev = old[id];
+      if (prev && cards.length){
+        // keep you on the same word even if rows were added above it
+        var cur = prev.cards[prev.index];
+        var idx = -1;
+        if (cur){
+          if (cards[prev.index] && cards[prev.index].jp === cur.jp) idx = prev.index;
+          else {
+            for (var i = 0; i < cards.length; i++){ if (cards[i].jp === cur.jp){ idx = i; break; } }
+          }
+        }
+        bank.index = idx >= 0 ? idx : Math.min(prev.index, cards.length - 1);
+        if (signature(prev) !== signature(bank)) delete histories[id];
+      }
+      return bank;
+    });
+
+    // marks you made that haven't reached the sheet yet win over the sheet's copy
+    pending.forEach(function(p){
+      var bank = findBank('s' + p.deck);
+      if (!bank) return;
+      var match = null;
+      for (var i = 0; i < bank.cards.length; i++){
+        var c = bank.cards[i];
+        if (c.jp === p.jp && c.en === p.en){ match = c; break; }
+        if (!match && c.jp === p.jp) match = c;
+      }
+      if (match){ match.mark = validMark(p.mark); p.row = match.row; }
+    });
+
+    if (!findBank(activeId)){
+      activeId = banks[0] ? banks[0].id : null;
+      flipped = false;
+    }
+    sheetTitle = String(data.title || '');
+  }
+
+  // one-time: put marks from the previous (CSV) version onto matching sheet words
+  function applyLegacyMarks(){
+    if (!legacyMarks) return;
+    banks.forEach(function(bank){
+      bank.cards.forEach(function(card){
+        var m = legacyMarks[cardKey(card.jp, card.en)];
+        if (m && !card.mark){
+          card.mark = m;
+          pending.push({ deck: bank.sheetId, row: card.row, jp: card.jp, en: card.en, mark: m });
+        }
+      });
+    });
+    legacyMarks = null;
+  }
+
+  var syncing = false, syncAgain = false;
+
+  function syncNow(){
+    if (!sheetUrl){ setSync('idle'); return Promise.resolve(false); }
+    if (syncing){ syncAgain = true; return Promise.resolve(false); }
+    syncing = true;
+    setSync('syncing');
+    var before = currentCard();
+    return flushPending().catch(function(){ /* still try to read; marks stay queued */ })
+      .then(fetchDecks)
+      .then(function(data){
+        mergeDecks(data);
+        applyLegacyMarks();
+        lastSync = Date.now();
+        save();
+        renderBanks();
+        if (currentCard() !== before) renderCard(false); else renderMarks();
+        if (viewBankId) renderView();
+        setSync('ok');
+        if (pending.length) scheduleFlush();
+        return true;
+      })
+      .catch(function(err){
+        setSync(navigator.onLine === false ? 'offline' : 'error', err && err.message);
+        return false;
+      })
+      .then(function(result){
+        syncing = false;
+        if (syncAgain){ syncAgain = false; syncNow(); }
+        return result;
+      });
+  }
+
+  // ---------- rendering: sync status ----------
+  function relTime(ms){
+    if (!ms) return 'never';
+    var diff = Date.now() - ms;
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return Math.round(diff / 60000) + ' min ago';
+    var d = new Date(ms);
+    return 'at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function statusInfo(){
+    var waiting = pending.length ? ' · ' + plural(pending.length, 'mark') + ' waiting' : '';
+    if (!sheetUrl) return { text: 'Not connected to a sheet', dot: '', bar: 'Connect your sheet', barCls: 'show' };
+    if (syncState === 'syncing') return { text: 'Syncing…', dot: 'busy', bar: '', barCls: '' };
+    if (syncState === 'offline') return { text: 'Offline · showing saved copy' + waiting, dot: 'warn', bar: 'Offline' + waiting, barCls: 'show' };
+    if (syncState === 'error') return { text: 'Can\'t reach the sheet' + waiting, dot: 'err', bar: 'Can\'t reach the sheet' + waiting, barCls: 'show err' };
+    if (pending.length) return { text: 'Synced ' + relTime(lastSync) + waiting, dot: 'warn', bar: plural(pending.length, 'mark') + ' waiting to sync', barCls: 'show' };
+    return { text: 'Synced ' + relTime(lastSync), dot: lastSync ? 'ok' : '', bar: '', barCls: '' };
+  }
+
+  function renderSync(){
+    if (!currentCard()) applyFace(null, false); // keeps the empty-state message in step with syncing
+    var s = statusInfo();
+    sideSyncText.textContent = s.text;
+    sideSyncDot.className = 'sync-dot ' + s.dot;
+    mSyncStatus.textContent = s.bar;
+    mSyncStatus.className = 'bankbar-status ' + s.barCls;
+    var title = sheetTitle ? sheetTitle + ' · ' : '';
+    banksSub.textContent = sheetUrl ? title + s.text : 'Not connected to a sheet yet';
+    if (syncState === 'error' && syncError && sheetUrl) banksSub.textContent += ' — ' + syncError;
+    var spin = syncState === 'syncing';
+    [sideBanksBtn, mBanksBtn, refreshBtn].forEach(function(btn){
+      var svg = btn.querySelector('svg');
+      if (svg) svg.classList.toggle('spin', spin);
+    });
+    refreshBtn.disabled = !sheetUrl || spin;
+  }
+
+  // ---------- rendering: card ----------
+  function colorFor(mark){
+    return mark ? getComputedStyle(document.documentElement).getPropertyValue('--' + mark).trim() : 'transparent';
+  }
+
+  function shownSide(){
+    var other = frontSide === 'jp' ? 'en' : 'jp';
+    return flipped ? other : frontSide;
+  }
+
+  function applyFace(card, keepFlipping){
+    if (!card){
+      faceLabelEl.textContent = 'japanese';
+      faceLabelEl.className = 'face-label jp';
+      wordDisplayEl.textContent = !sheetUrl
+        ? 'Connect your Google Sheet to get started'
+        : (syncState === 'syncing' ? 'Loading your word banks…' : 'No words found in your sheet');
+      wordDisplayEl.className = 'word-display is-empty';
+      cardEl.classList.remove('is-en');
+      cardEl.classList.add('is-jp');
+      listenBtn.classList.add('is-hidden');
+      return;
+    }
+    var side = shownSide();
+    faceLabelEl.textContent = side === 'jp' ? 'japanese' : 'english';
+    faceLabelEl.className = 'face-label ' + side;
+    wordDisplayEl.textContent = side === 'jp' ? card.jp : card.en;
+    wordDisplayEl.className = 'word-display' + (side === 'en' ? ' is-en' : '') + (keepFlipping ? ' flipping' : '');
+    cardEl.classList.toggle('is-en', side === 'en');
+    cardEl.classList.toggle('is-jp', side === 'jp');
+    listenBtn.classList.toggle('is-hidden', side !== 'jp');
+  }
+
+  function renderMarks(){
+    var card = currentCard();
+    if (card && card.mark){
       markIndicatorEl.classList.add('show');
       markIndicatorEl.style.background = colorFor(card.mark);
     } else {
       markIndicatorEl.classList.remove('show');
       markIndicatorEl.style.background = 'transparent';
     }
+    markGreenBtn.classList.toggle('active', !!card && card.mark === 'green');
+    markYellowBtn.classList.toggle('active', !!card && card.mark === 'yellow');
+    markRedBtn.classList.toggle('active', !!card && card.mark === 'red');
+  }
 
-    markGreenBtn.classList.toggle('active', card.mark === 'green');
-    markYellowBtn.classList.toggle('active', card.mark === 'yellow');
-    markRedBtn.classList.toggle('active', card.mark === 'red');
+  function renderCard(animateSwap){
+    var bank = activeBank();
+    var card = currentCard();
+    applyFace(card, false);
+    renderMarks();
 
-    progressEl.textContent = (currentIndex + 1) + ' / ' + deck.length;
+    var prog = bank && bank.cards.length ? (bank.index + 1) + ' / ' + bank.cards.length : '0 / 0';
+    progressEl.textContent = prog;
+    mProgressEl.textContent = prog;
+    mBankName.textContent = bank ? bank.name : (sheetUrl ? 'No word bank' : 'Not connected');
+    mBankName.title = bank ? bank.name : '';
 
-    if (animateSwap){
+    if (animateSwap && card){
       wordDisplayEl.classList.remove('card-swap');
-      void wordDisplayEl.offsetWidth; // reflow to restart animation
+      void wordDisplayEl.offsetWidth;
       wordDisplayEl.classList.add('card-swap');
     }
   }
 
-  function colorFor(mark){
-    if (mark === 'green') return getCssVar('--green');
-    if (mark === 'yellow') return getCssVar('--yellow');
-    if (mark === 'red') return getCssVar('--red');
-    return 'transparent';
+  // ---------- rendering: toggles ----------
+  function renderSideToggle(){
+    var isEn = frontSide === 'en';
+    sideSwitches.forEach(function(sw){
+      sw.classList.toggle('en', isEn);
+      sw.setAttribute('aria-checked', String(isEn));
+    });
+    sideOpts.forEach(function(opt){
+      opt.classList.toggle('active', opt.getAttribute('data-side') === frontSide);
+    });
   }
 
-  function getCssVar(name){
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  function renderShuffle(){
+    shuffleSwitch.classList.toggle('on', shuffleOn);
+    shuffleSwitch.setAttribute('aria-checked', String(shuffleOn));
+  }
+
+  function setFrontSide(side){
+    if (side === frontSide) return;
+    frontSide = side;
+    flipped = false;
+    save();
+    renderSideToggle();
+    renderCard(true);
+  }
+
+  // ---------- rendering: bank lists (sidebar + panel) ----------
+  function buildBankItem(bank, onPick){
+    var li = document.createElement('li');
+    li.className = 'bank-item' + (bank.id === activeId ? ' active' : '');
+
+    var nameBtn = document.createElement('button');
+    nameBtn.className = 'bank-name-btn';
+    nameBtn.title = 'Study ' + bank.name;
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'bank-name';
+    nameSpan.textContent = bank.name;
+    var metaSpan = document.createElement('span');
+    metaSpan.className = 'bank-meta';
+    metaSpan.textContent = plural(bank.cards.length, 'word');
+    nameBtn.appendChild(nameSpan);
+    nameBtn.appendChild(metaSpan);
+    nameBtn.addEventListener('click', function(){ switchBank(bank.id); if (onPick) onPick(); });
+
+    var viewBtn = document.createElement('button');
+    viewBtn.className = 'icon-btn view';
+    viewBtn.title = 'View words';
+    viewBtn.setAttribute('aria-label', 'View words in ' + bank.name);
+    viewBtn.appendChild(svgIcon());
+    viewBtn.addEventListener('click', function(){ if (onPick) onPick(); openView(bank.id); });
+
+    li.appendChild(nameBtn);
+    li.appendChild(viewBtn);
+    return li;
+  }
+
+  function emptyItem(text){
+    var li = document.createElement('li');
+    li.className = 'bank-empty';
+    li.textContent = text;
+    return li;
+  }
+
+  function renderBanks(){
+    sidebarCountEl.textContent = banks.length;
+    bankListEl.innerHTML = '';
+    panelBankList.innerHTML = '';
+    if (banks.length === 0){
+      var msg = sheetUrl ? 'No word banks found. Add words to a tab in your sheet, then refresh.' : 'Connect your Google Sheet to load your word banks.';
+      bankListEl.appendChild(emptyItem(msg));
+      panelBankList.appendChild(emptyItem(msg));
+      return;
+    }
+    banks.forEach(function(bank){
+      bankListEl.appendChild(buildBankItem(bank, null));
+      panelBankList.appendChild(buildBankItem(bank, closeBanks));
+    });
+  }
+
+  function renderAll(animate){
+    renderBanks();
+    renderCard(!!animate);
+    renderSync();
+  }
+
+  function switchBank(id){
+    if (id === activeId) return;
+    activeId = id;
+    flipped = false;
+    save();
+    renderAll(true);
   }
 
   // ---------- flip ----------
   function flipCard(){
+    var card = currentCard();
+    if (!card){ openBanks(); return; }
     flipped = !flipped;
+    if (shownSide() !== 'jp' && window.speechSynthesis) window.speechSynthesis.cancel();
     wordDisplayEl.classList.remove('flipping');
     void wordDisplayEl.offsetWidth;
     wordDisplayEl.classList.add('flipping');
     setTimeout(function(){
-      var card = deck[currentIndex];
-      faceLabelEl.textContent = flipped ? 'english' : 'japanese';
-      faceLabelEl.className = 'face-label' + (flipped ? ' back' : '');
-      wordDisplayEl.textContent = flipped ? card.en : card.jp;
-      wordDisplayEl.className = 'word-display flipping' + (flipped ? ' is-back' : '');
-      cardEl.classList.toggle('is-back', flipped);
-      cardEl.classList.toggle('is-front', !flipped);
+      var c = currentCard();
+      if (!c) return;
+      applyFace(c, true);
     }, 150);
   }
 
   // ---------- marking ----------
   function markCurrent(color){
-    var card = deck[currentIndex];
-    if (!card) return;
-    card.mark = color; // overwrite with the newly selected color
-    render(false);
+    var bank = activeBank();
+    var card = currentCard();
+    if (!bank || !card) return;
+    card.mark = color;
+    save();
+    renderMarks();
+    enqueueMark(bank, card);
   }
 
-  // ---------- navigation ----------
-  function weightedNextIndex(){
-    var n = deck.length;
+  // ---------- navigation (with history, so "back" retraces what you saw) ----------
+  function hist(bank){
+    var h = histories[bank.id];
+    if (!h || h.list[h.pos] !== bank.index){
+      h = histories[bank.id] = { list: [bank.index], pos: 0 };
+    }
+    return h;
+  }
+
+  function showIndex(bank, idx){
+    bank.index = idx;
+    flipped = false;
+    save();
+    renderCard(true);
+  }
+
+  function weightedNextIndex(bank){
+    var n = bank.cards.length;
     if (n <= 1) return 0;
     var pool = [];
     for (var i = 0; i < n; i++){
-      if (i === currentIndex) continue;
-      var mark = deck[i].mark || 'none';
+      if (i === bank.index) continue;
+      var mark = bank.cards[i].mark || 'none';
       pool.push({ index: i, weight: WEIGHTS[mark] });
     }
     var total = pool.reduce(function(sum, p){ return sum + p.weight; }, 0);
@@ -721,60 +1719,57 @@
     return pool[pool.length - 1].index;
   }
 
-  // History of the cards actually shown, so "back" retraces the real order
-  // (including shuffled order). Going back then forward replays the same cards.
-  var history = [0];
-  var historyPos = 0;
-  var HISTORY_LIMIT = 2000;
-
-  function resetHistory(){
-    history = [currentIndex];
-    historyPos = 0;
-  }
-
-  // Drop any "forward" cards so a new order (e.g. shuffle toggled) takes effect.
-  function truncateForward(){
-    history = history.slice(0, historyPos + 1);
-  }
-
-  function showIndex(i){
-    currentIndex = i;
-    flipped = false;
-    render(true);
-  }
-
   function nextCard(){
-    if (deck.length === 0) return false;
-    if (historyPos < history.length - 1){
-      historyPos++;
-      showIndex(history[historyPos]);
-      return true;
+    var bank = activeBank();
+    if (!bank || bank.cards.length === 0) return false;
+    var h = hist(bank);
+    var idx;
+    if (h.pos < h.list.length - 1){
+      h.pos++;
+      idx = h.list[h.pos];
+    } else {
+      idx = shuffleOn ? weightedNextIndex(bank) : (bank.index + 1) % bank.cards.length;
+      h.list.push(idx);
+      if (h.list.length > HISTORY_LIMIT) h.list.shift();
+      h.pos = h.list.length - 1;
     }
-    var nextIdx = shuffleOn ? weightedNextIndex() : (currentIndex + 1) % deck.length;
-    history.push(nextIdx);
-    if (history.length > HISTORY_LIMIT){ history.shift(); }
-    historyPos = history.length - 1;
-    showIndex(nextIdx);
+    showIndex(bank, idx);
     return true;
   }
 
   function prevCard(){
-    if (deck.length === 0) return false;
-    if (historyPos > 0){
-      historyPos--;
-      showIndex(history[historyPos]);
+    var bank = activeBank();
+    if (!bank || bank.cards.length === 0) return false;
+    var h = hist(bank);
+    if (h.pos > 0){
+      h.pos--;
+      showIndex(bank, h.list[h.pos]);
       return true;
     }
-    // At the start of history: in CSV order we can still step back through the list.
-    if (!shuffleOn && deck.length > 1){
-      var prevIdx = (currentIndex - 1 + deck.length) % deck.length;
-      history.unshift(prevIdx);
-      if (history.length > HISTORY_LIMIT){ history.pop(); }
-      historyPos = 0;
-      showIndex(prevIdx);
+    // at the start of history: in sheet order you can keep stepping back through the list
+    if (!shuffleOn && bank.cards.length > 1){
+      var idx = (bank.index - 1 + bank.cards.length) % bank.cards.length;
+      h.list.unshift(idx);
+      if (h.list.length > HISTORY_LIMIT) h.list.pop();
+      h.pos = 0;
+      showIndex(bank, idx);
       return true;
     }
-    return false; // nothing earlier to go back to
+    return false;
+  }
+
+  function canGoBack(){
+    var bank = activeBank();
+    if (!bank || bank.cards.length < 2) return false;
+    return !shuffleOn || hist(bank).pos > 0;
+  }
+
+  function goTo(bank, idx){
+    var h = hist(bank);
+    h.list = h.list.slice(0, h.pos + 1);
+    h.list.push(idx);
+    h.pos = h.list.length - 1;
+    showIndex(bank, idx);
   }
 
   // ---------- speech ----------
@@ -789,8 +1784,8 @@
 
   function speakCurrent(){
     if (!window.speechSynthesis) return;
-    var card = deck[currentIndex];
-    if (!card) return;
+    var card = currentCard();
+    if (!card || shownSide() !== 'jp') return;
     window.speechSynthesis.cancel();
     var utter = new SpeechSynthesisUtterance(card.jp);
     utter.lang = 'ja-JP';
@@ -803,91 +1798,139 @@
     window.speechSynthesis.speak(utter);
   }
 
-  // ---------- CSV parsing ----------
-  function parseCSV(text){
-    var rows = [];
-    var row = [];
-    var field = '';
-    var inQuotes = false;
-    for (var i = 0; i < text.length; i++){
-      var ch = text[i];
-      var next = text[i + 1];
-      if (inQuotes){
-        if (ch === '"' && next === '"'){ field += '"'; i++; }
-        else if (ch === '"'){ inQuotes = false; }
-        else { field += ch; }
+  // ---------- word banks panel ----------
+  function openBanks(){
+    urlError.classList.remove('show');
+    urlOk.classList.remove('show');
+    sheetUrlInput.value = sheetUrl;
+    sheetSettings.open = !sheetUrl;
+    renderBanks();
+    renderSync();
+    banksOverlay.classList.add('open');
+    if (sheetUrl && Date.now() - lastSync > RESYNC_AFTER_MS) syncNow();
+  }
+  function closeBanks(){ banksOverlay.classList.remove('open'); }
+
+  function connectSheet(){
+    var url = sheetUrlInput.value.trim();
+    urlError.classList.remove('show');
+    urlOk.classList.remove('show');
+    if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(url)){
+      urlError.textContent = 'That doesn\'t look like an Apps Script web app link. It should start with https://script.google.com/';
+      urlError.classList.add('show');
+      return;
+    }
+    if (/\/dev(\?|$)/.test(url)){
+      urlError.textContent = 'This is the test (/dev) link, which only works while you\'re signed in. Use the deployment link ending in /exec.';
+      urlError.classList.add('show');
+      return;
+    }
+    if (url !== sheetUrl){
+      sheetUrl = url;
+      pending = [];
+      lastSync = 0;
+      save();
+    }
+    saveUrlBtn.disabled = true;
+    syncNow().then(function(ok){
+      saveUrlBtn.disabled = false;
+      if (ok){
+        urlOk.textContent = 'Connected · ' + plural(banks.length, 'word bank') + ' loaded';
+        urlOk.classList.add('show');
       } else {
-        if (ch === '"'){ inQuotes = true; }
-        else if (ch === ','){ row.push(field); field = ''; }
-        else if (ch === '\r'){ /* ignore, \n handles row end */ }
-        else if (ch === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
-        else { field += ch; }
+        urlError.textContent = syncError || 'Couldn\'t reach the sheet with that link.';
+        urlError.classList.add('show');
       }
+      renderAll(true);
+    });
+  }
+
+  // ---------- view modal ----------
+  function openView(id){
+    if (!findBank(id)) { openBanks(); return; }
+    viewBankId = id;
+    viewSort = 'default';
+    renderView();
+    viewOverlay.classList.add('open');
+    wordListEl.scrollTop = 0;
+  }
+  function closeView(){
+    viewOverlay.classList.remove('open');
+    viewBankId = null;
+  }
+
+  function renderView(){
+    var bank = findBank(viewBankId);
+    if (!bank){ closeView(); return; }
+
+    viewTitle.textContent = bank.name;
+    viewTitle.title = bank.name;
+    viewSub.textContent = plural(bank.cards.length, 'word') + ' · tap a word to jump to its card';
+
+    var counts = { red: 0, yellow: 0, green: 0, none: 0 };
+    bank.cards.forEach(function(c){ counts[c.mark || 'none']++; });
+
+    viewSummary.innerHTML = '';
+    ['red', 'yellow', 'green', 'none'].forEach(function(k){
+      var s = document.createElement('span');
+      var d = document.createElement('span');
+      d.className = 'dot ' + k;
+      s.appendChild(d);
+      s.appendChild(document.createTextNode(counts[k] + ' ' + (k === 'none' ? 'unmarked' : k)));
+      viewSummary.appendChild(s);
+    });
+
+    Array.prototype.forEach.call(sortRow.querySelectorAll('.chip'), function(chip){
+      chip.classList.toggle('active', chip.getAttribute('data-sort') === viewSort);
+    });
+
+    var entries = bank.cards.map(function(c, i){ return { card: c, index: i }; });
+    if (viewSort !== 'default'){
+      entries.sort(function(a, b){
+        var ra = (a.card.mark || 'none') === viewSort ? 0 : 1;
+        var rb = (b.card.mark || 'none') === viewSort ? 0 : 1;
+        return (ra - rb) || (a.index - b.index);
+      });
     }
-    if (field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
-    return rows.filter(function(r){ return r.length > 0 && !(r.length === 1 && r[0].trim() === ''); });
+
+    wordListEl.innerHTML = '';
+    var frag = document.createDocumentFragment();
+    entries.forEach(function(entry){
+      var li = document.createElement('li');
+      li.className = 'word-row';
+      var dot = document.createElement('span');
+      dot.className = 'dot ' + (entry.card.mark || 'none');
+      dot.title = entry.card.mark || 'unmarked';
+      var jp = document.createElement('span');
+      jp.className = 'jp';
+      jp.textContent = entry.card.jp;
+      var en = document.createElement('span');
+      en.className = 'en';
+      en.textContent = entry.card.en;
+      li.appendChild(dot);
+      li.appendChild(jp);
+      li.appendChild(en);
+      li.addEventListener('click', function(){ jumpTo(bank.id, entry.index); });
+      frag.appendChild(li);
+    });
+    wordListEl.appendChild(frag);
   }
 
-  function looksLikeHeader(cell){
-    return /^[a-zA-Z][a-zA-Z\s\/\-]*$/.test((cell || '').trim());
-  }
-
-  function pairsFromCSV(text){
-    var rows = parseCSV(text);
-    if (rows.length === 0) return [];
-    var startIdx = 0;
-    if (looksLikeHeader(rows[0][0])){ startIdx = 1; }
-    var pairs = [];
-    for (var i = startIdx; i < rows.length; i++){
-      var r = rows[i];
-      if (!r || r.length < 2) continue;
-      var jp = (r[0] || '').trim();
-      var en = (r[1] || '').trim();
-      if (!jp) continue;
-      pairs.push([jp, en]);
+  function jumpTo(bankId, index){
+    var bank = findBank(bankId);
+    if (!bank) return;
+    closeView();
+    if (bankId !== activeId){
+      activeId = bankId;
+      renderBanks();
     }
-    return pairs;
+    goTo(bank, index);
   }
-
-  function handleFile(file){
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e){
-      var pairs = pairsFromCSV(String(e.target.result));
-      if (pairs.length === 0){
-        modalError.classList.add('show');
-        return;
-      }
-      modalError.classList.remove('show');
-      loadDeck(pairs, file.name);
-      closeModal();
-    };
-    reader.onerror = function(){
-      modalError.classList.add('show');
-    };
-    reader.readAsText(file);
-  }
-
-  // ---------- modal ----------
-  function openModal(){
-    modalError.classList.remove('show');
-    overlay.classList.add('open');
-  }
-  function closeModal(){
-    overlay.classList.remove('open');
-  }
-
-  // ---------- event wiring ----------
-  var suppressClick = false;
-  cardEl.addEventListener('click', function(){
-    if (suppressClick){ suppressClick = false; return; }
-    flipCard();
-  });
 
   // ---------- swipe (touch) ----------
-  var SWIPE_THRESHOLD = 60;   // px of horizontal travel needed to change card
+  var SWIPE_THRESHOLD = 60;
   var touchStartX = 0, touchStartY = 0, dragX = 0;
-  var tracking = false, horizontal = null, animating = false;
+  var tracking = false, horizontal = null, animating = false, suppressClick = false;
 
   function setCardOffset(x, withAnim){
     cardEl.classList.toggle('slide-anim', !!withAnim);
@@ -895,14 +1938,13 @@
     cardEl.style.opacity = x ? String(Math.max(0.35, 1 - Math.abs(x) / 600)) : '';
   }
 
-  // dir: -1 = swiped right-to-left (next), +1 = swiped left-to-right (previous)
+  // dir: -1 = right-to-left (next card), +1 = left-to-right (previous card)
   function swipeTo(dir){
     animating = true;
     var outX = dir * window.innerWidth;
     setCardOffset(outX, true);
     setTimeout(function(){
       var changed = dir < 0 ? nextCard() : prevCard();
-      // new card enters from the opposite side
       setCardOffset(changed ? -outX * 0.6 : 0, false);
       void cardEl.offsetWidth;
       setCardOffset(0, true);
@@ -911,7 +1953,7 @@
   }
 
   cardEl.addEventListener('touchstart', function(e){
-    if (animating || e.touches.length !== 1) return;
+    if (animating || e.touches.length !== 1 || !currentCard()) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     dragX = 0;
@@ -939,20 +1981,18 @@
     if (!horizontal) return;
     suppressClick = true;
     setTimeout(function(){ suppressClick = false; }, 400);
-    if (dragX <= -SWIPE_THRESHOLD){
-      swipeTo(-1);
-    } else if (dragX >= SWIPE_THRESHOLD){
-      if (!shuffleOn || historyPos > 0){
-        swipeTo(1);
-      } else {
-        setCardOffset(0, true); // nothing to go back to yet
-      }
-    } else {
-      setCardOffset(0, true);
-    }
+    if (dragX <= -SWIPE_THRESHOLD) swipeTo(-1);
+    else if (dragX >= SWIPE_THRESHOLD && canGoBack()) swipeTo(1);
+    else setCardOffset(0, true);
   }
   cardEl.addEventListener('touchend', endTouch);
   cardEl.addEventListener('touchcancel', endTouch);
+
+  // ---------- event wiring ----------
+  cardEl.addEventListener('click', function(){
+    if (suppressClick){ suppressClick = false; return; }
+    flipCard();
+  });
 
   listenBtn.addEventListener('click', function(e){ e.stopPropagation(); speakCurrent(); });
   markGreenBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('green'); });
@@ -961,46 +2001,58 @@
 
   shuffleSwitch.addEventListener('click', function(){
     shuffleOn = !shuffleOn;
-    truncateForward();
-    shuffleSwitch.classList.toggle('on', shuffleOn);
-    shuffleSwitch.setAttribute('aria-checked', String(shuffleOn));
+    // a new order takes effect from here: forget cards "ahead" in the history
+    Object.keys(histories).forEach(function(id){
+      var h = histories[id];
+      h.list = h.list.slice(0, h.pos + 1);
+    });
+    renderShuffle();
+    save();
   });
 
-  editBankBtn.addEventListener('click', openModal);
-  closeModalBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', function(e){
-    if (e.target === overlay) closeModal();
+  sideSwitches.forEach(function(sw){
+    sw.addEventListener('click', function(){ setFrontSide(frontSide === 'jp' ? 'en' : 'jp'); });
+  });
+  sideOpts.forEach(function(opt){
+    opt.addEventListener('click', function(){ setFrontSide(opt.getAttribute('data-side')); });
   });
 
-  dropzone.addEventListener('click', function(){ fileInput.click(); });
-  dropzone.addEventListener('dragover', function(e){
-    e.preventDefault();
-    dropzone.classList.add('dragover');
+  sideBanksBtn.addEventListener('click', openBanks);
+  mBanksBtn.addEventListener('click', openBanks);
+  mViewBtn.addEventListener('click', function(){ openView(activeId); });
+  closeBanksBtn.addEventListener('click', closeBanks);
+  banksOverlay.addEventListener('click', function(e){ if (e.target === banksOverlay) closeBanks(); });
+  refreshBtn.addEventListener('click', function(){ syncNow(); });
+  saveUrlBtn.addEventListener('click', connectSheet);
+  sheetUrlInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); connectSheet(); }
   });
-  dropzone.addEventListener('dragleave', function(){
-    dropzone.classList.remove('dragover');
-  });
-  dropzone.addEventListener('drop', function(e){
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-    var file = e.dataTransfer.files && e.dataTransfer.files[0];
-    handleFile(file);
-  });
-  fileInput.addEventListener('change', function(e){
-    var file = e.target.files && e.target.files[0];
-    handleFile(file);
+
+  closeViewBtn.addEventListener('click', closeView);
+  viewOverlay.addEventListener('click', function(e){ if (e.target === viewOverlay) closeView(); });
+  sortRow.addEventListener('click', function(e){
+    var chip = e.target.closest ? e.target.closest('.chip') : null;
+    if (!chip) return;
+    viewSort = chip.getAttribute('data-sort');
+    renderView();
+    wordListEl.scrollTop = 0;
   });
 
   document.addEventListener('keydown', function(e){
-    var modalOpen = overlay.classList.contains('open');
-    if (modalOpen){
-      if (e.key === 'Escape'){ closeModal(); }
+    var banksOpen = banksOverlay.classList.contains('open');
+    var viewOpen = viewOverlay.classList.contains('open');
+    if (banksOpen || viewOpen){
+      if (e.key === 'Escape'){
+        if (banksOpen) closeBanks();
+        if (viewOpen) closeView();
+      }
       return;
     }
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.code === 'Space'){
       e.preventDefault();
       flipCard();
-    } else if (e.code === 'Enter'){
+    } else if (e.code === 'Enter' || e.code === 'NumpadEnter'){
       e.preventDefault();
       nextCard();
     } else if (e.key === 'ArrowRight'){
@@ -1013,13 +2065,24 @@
       markCurrent('yellow');
     } else if (e.key === '3'){
       markCurrent('green');
-    } else if (e.key.toLowerCase() === 'v'){
+    } else if (e.key && e.key.toLowerCase() === 'v'){
       speakCurrent();
     }
   });
 
+  // pick up sheet changes when you come back to the app, and send queued marks when back online
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && sheetUrl && Date.now() - lastSync > RESYNC_AFTER_MS) syncNow();
+  });
+  window.addEventListener('online', function(){ if (sheetUrl) syncNow(); });
+  setInterval(renderSync, 60000); // keeps "synced N min ago" fresh
+
   // ---------- init ----------
-  loadDeck(DEFAULT_PAIRS, DEFAULT_FILENAME);
+  loadState();
+  renderShuffle();
+  renderSideToggle();
+  renderAll(false);
+  if (sheetUrl) syncNow(); else openBanks();
 })();
 </script>
 
