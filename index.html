@@ -123,7 +123,7 @@
     min-height: 540px;
     display: grid;
     grid-template-columns: 1fr minmax(0, 420px) 1fr;
-    column-gap: 32px;
+    column-gap: 80px; /* the hint under the card is wider than the card; this keeps it off the side column */
     align-items: center;
   }
 
@@ -145,69 +145,88 @@
     justify-content: center;
   }
 
-  /* ---------- front-side toggle ---------- */
+  /* ---------- the two switches: side shown first (pink) and card order (blue) ---------- */
   .side-toggle{
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 14px 16px 16px;
     box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .side-toggle-block + .side-toggle-block{
+    border-top: 1px solid var(--border-soft);
+    padding-top: 13px;
   }
   .side-toggle-title{
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.4px;
     color: var(--muted);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-transform: lowercase;
   }
+  /* switch in the middle column, so the two line up one above the other */
   .side-toggle-row{
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
   }
-  .side-opt{
+  .side-toggle-row > :last-child{ justify-self: end; }
+  .side-opt, .shuffle-opt{
     font-size: 14px;
     font-weight: 700;
     color: var(--muted-soft);
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
     transition: color 0.25s ease;
   }
-  .side-opt.jp.active{ color: var(--pink); }
-  .side-opt.en.active{ color: var(--blue); }
+  .side-opt.active, .shuffle-opt.active{ color: var(--text); }
 
-  .side-switch{
-    width: 58px;
-    height: 32px;
+  /* both switches share this, so they are always the same size */
+  .tgl{
+    width: 52px;
+    height: 30px;
     flex-shrink: 0;
     border-radius: 999px;
     border: none;
     padding: 0;
     position: relative;
     cursor: pointer;
-    background: var(--pink);
-    transition: background 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
   }
-  .side-switch .knob{
+  .tgl .knob{
     position: absolute;
     top: 3px;
     left: 3px;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    transition: transform 0.25s ease;
+    transition: transform 0.25s ease, background 0.25s ease;
   }
-  .side-switch.en{ background: var(--blue); }
-  .side-switch.en .knob{ transform: translateX(26px); }
+  /* pink: japanese (knob left) or english (knob right) first */
+  .tgl.pink{ background: var(--pink); }
+  .tgl.pink.en .knob{ transform: translateX(22px); }
+  /* blue: shuffle. Pale when off, solid when on */
+  .tgl.blue{ background: rgba(106,147,255,0.2); box-shadow: inset 0 0 0 1.5px rgba(106,147,255,0.55); }
+  .tgl.blue .knob{ background: #b9c6ee; }
+  .tgl.blue.on{ background: var(--blue); box-shadow: none; }
+  .tgl.blue.on .knob{ transform: translateX(22px); background: #fff; }
+  .tgl.sm{ width: 46px; height: 26px; }
+  .tgl.sm .knob{ width: 20px; height: 20px; }
+  .tgl.sm.pink.en .knob, .tgl.sm.blue.on .knob{ transform: translateX(20px); }
 
   /* ---------- sidebar (word bank table) ---------- */
   .sidebar{
     width: 100%;
-    max-height: 400px;
+    max-height: clamp(200px, calc(100vh - 360px), 400px);
     display: flex;
     flex-direction: column;
     background: var(--surface);
@@ -243,9 +262,11 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .sidebar-head-btns{ display: flex; align-items: center; gap: 6px; }
+  /* the % and gear buttons: deliberately no animation */
   .add-btn{
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
     border-radius: 50%;
     border: 1px solid var(--border);
@@ -255,11 +276,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
   }
-  .add-btn svg{ width: 22px; height: 22px; }
+  .add-btn svg{ width: 18px; height: 18px; }
   .add-btn:hover{ border-color: var(--pink); background: var(--pink-dim); color: var(--pink); }
-  .add-btn:active{ transform: scale(0.92); }
 
   .bank-list{
     list-style: none;
@@ -507,6 +526,8 @@
     color: var(--muted-soft);
     text-align: center;
   }
+  .hint span{ white-space: nowrap; }
+  .hint i{ font-style: normal; margin: 0 4px; }
   .hint kbd{
     font-family: inherit;
     background: var(--surface-2);
@@ -518,16 +539,7 @@
   }
 
   /* ---------- bottom bar ---------- */
-  .bottombar{
-    width: 100%;
-    max-width: 1100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .shuffle-group{ display: flex; align-items: center; gap: 10px; }
-  .shuffle-label{ font-size: 14px; font-weight: 600; color: var(--muted); }
+  .bottombar{ display: none; } /* phone only */
 
   .switch{
     width: 46px;
@@ -631,6 +643,43 @@
   }
   .view-summary span{ display: inline-flex; align-items: center; gap: 6px; }
 
+  /* tag band: share of green / yellow / red, the empty rest is unmarked */
+  .tag-band{
+    display: flex;
+    gap: 2px;
+    height: 10px;
+    margin: 0 0 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .tag-band i{ display: block; height: 100%; min-width: 0; }
+  .tag-band i.green{ background: var(--green); min-width: 4px; }
+  .tag-band i.yellow{ background: var(--yellow); min-width: 4px; }
+  .tag-band i.red{ background: var(--red); min-width: 4px; }
+  .tag-band.slim{ height: 4px; margin: 7px 0 1px; gap: 1px; }
+  .tag-band.slim i.green, .tag-band.slim i.yellow, .tag-band.slim i.red{ min-width: 2px; }
+
+  /* tag probability popup */
+  .odds-rows{ display: grid; gap: 12px; margin: 18px 0 4px; }
+  .odds-row{ grid-template-columns: 84px minmax(0, 1fr) 46px; }
+  .odds-row .ls-label{ display: inline-flex; align-items: center; gap: 8px; }
+  .odds-range.red{ background: linear-gradient(var(--red), var(--red)) 0 0 / var(--fill, 50%) 100% no-repeat, var(--surface-2); }
+  .odds-range.yellow{ background: linear-gradient(var(--yellow), var(--yellow)) 0 0 / var(--fill, 50%) 100% no-repeat, var(--surface-2); }
+  .odds-range.green{ background: linear-gradient(var(--green), var(--green)) 0 0 / var(--fill, 50%) 100% no-repeat, var(--surface-2); }
+  .odds-actions{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .odds-actions .modal-note{ margin: 0; }
+  .odds-actions .pill-btn{ flex-shrink: 0; white-space: nowrap; }
+
   .sort-row{
     display: flex;
     flex-wrap: wrap;
@@ -704,14 +753,24 @@
 
 
   /* ---------- responsive (desktop widths) ---------- */
-  /* not enough room for a mirrored side column: center the sidebar + card group instead */
-  @media (max-width: 1080px){
+  /* not enough room for a mirrored side column: center the sidebar + card group instead,
+     and let the hint wrap under the card so it can't reach the side column */
+  @media (max-width: 1170px){
     .main{
       display: flex;
       justify-content: center;
-      gap: 32px;
+      gap: 40px;
     }
     .side-col{ flex-shrink: 0; }
+    /* two tidy rows of shortcuts, no dots left hanging at the start of a row */
+    .hint-desktop{
+      max-width: min(90vw, 420px);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px 16px;
+    }
+    .hint-desktop i{ display: none; }
   }
 
   /* ---------- v4 additions ---------- */
@@ -738,7 +797,6 @@
   /* speaker only on the japanese side */
   .listen-btn.is-hidden{ visibility: hidden; pointer-events: none; }
 
-  .add-btn svg.spin, .bar-btn svg.spin{ animation: spin 0.9s linear infinite; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
   /* sidebar footer: sync status */
@@ -846,7 +904,7 @@
 
   /* ---------- phone-only pieces (hidden on desktop) ---------- */
   .bankbar{ display: none; }
-  .m-progress, .m-side, .hint-touch{ display: none; }
+  .hint-touch{ display: none; }
 
   .bankbar{
     align-items: center;
@@ -873,7 +931,10 @@
   .bar-btn svg{ width: 17px; height: 17px; }
   .bar-btn:active{ transform: scale(0.92); }
   .bar-btn.view:hover{ color: var(--blue); border-color: rgba(106,147,255,0.5); }
-  .bar-btn.swap:hover{ color: var(--pink); border-color: rgba(255,123,171,0.5); }
+  .bar-btn.swap:hover, .bar-btn.odds:hover{ color: var(--pink); border-color: rgba(255,123,171,0.5); }
+  /* the gear and % buttons: deliberately no animation */
+  .bar-btn.swap, .bar-btn.odds{ transition: none; }
+  .bar-btn.swap:active, .bar-btn.odds:active{ transform: none; }
   .bankbar-text{
     min-width: 0;
     margin-left: 6px;
@@ -899,17 +960,11 @@
     font-size: 12.5px;
     color: var(--muted-soft);
     font-variant-numeric: tabular-nums;
-    justify-self: center;
+    white-space: nowrap;
   }
-  .m-side{
-    justify-self: end;
-    align-items: center;
-    gap: 8px;
-  }
-  .m-side .side-opt{ font-size: 13px; }
-  .side-switch.sm{ width: 46px; height: 26px; }
-  .side-switch.sm .knob{ width: 20px; height: 20px; }
-  .side-switch.sm.en .knob{ transform: translateX(20px); }
+  .m-toggles{ display: flex; align-items: center; gap: 18px; min-width: 0; }
+  .m-side, .m-shuffle{ display: flex; align-items: center; gap: 8px; }
+  .m-toggles .side-opt, .m-toggles .shuffle-opt{ font-size: 13px; }
 
   /* ---------- phone layout ---------- */
   @media (max-width: 820px){
@@ -938,13 +993,13 @@
     .hint-touch{ display: block; }
 
     .bottombar{
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      width: 100%;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
-    .shuffle-group{ justify-self: start; }
-    .m-progress{ display: block; }
-    .m-side{ display: flex; }
+    .bankbar{ gap: 5px; }
 
     .modal{ padding: 22px 18px; }
     .word-list{ max-height: 58vh; }
@@ -1152,7 +1207,7 @@
     position: fixed;
     left: 50%;
     bottom: max(18px, env(safe-area-inset-bottom));
-    transform: translate(-50%, 160%);
+    transform: translate(-50%, calc(100% + 130px)); /* parked fully below the screen, also on phones where it sits higher */
     z-index: 40;
     display: flex;
     align-items: center;
@@ -1220,13 +1275,25 @@
     <div class="side-col">
 
       <div class="side-toggle">
-        <div class="side-toggle-title">show first</div>
-        <div class="side-toggle-row">
-          <span class="side-opt jp active" data-side="jp">japanese</span>
-          <button class="side-switch" id="sideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
-            <div class="knob"></div>
-          </button>
-          <span class="side-opt en" data-side="en">english</span>
+        <div class="side-toggle-block">
+          <div class="side-toggle-title">show first</div>
+          <div class="side-toggle-row">
+            <span class="side-opt jp active" data-side="jp">japanese</span>
+            <button class="tgl pink" id="sideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
+              <div class="knob"></div>
+            </button>
+            <span class="side-opt en" data-side="en">english</span>
+          </div>
+        </div>
+        <div class="side-toggle-block">
+          <div class="side-toggle-title">card order</div>
+          <div class="side-toggle-row">
+            <span class="shuffle-opt active" data-shuffle="off">in order</span>
+            <button class="tgl blue" id="shuffleSwitch" role="switch" aria-checked="false" aria-label="Shuffle">
+              <div class="knob"></div>
+            </button>
+            <span class="shuffle-opt" data-shuffle="on">shuffle</span>
+          </div>
         </div>
       </div>
 
@@ -1241,9 +1308,14 @@
             <span class="sidebar-title">word banks</span>
             <span class="sidebar-count" id="sidebarCount">0</span>
           </div>
-          <button class="add-btn" id="sideBanksBtn" title="Word banks and sync" aria-label="Word banks and sync">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-          </button>
+          <div class="sidebar-head-btns">
+            <button class="add-btn" id="sideOddsBtn" title="Tag probability" aria-label="Tag probability">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
+            </button>
+            <button class="add-btn" id="sideBanksBtn" title="Word banks and sync" aria-label="Word banks and sync">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+          </div>
         </div>
         <ul class="bank-list" id="bankList"></ul>
         <div class="sidebar-foot"><span class="sync-dot" id="sideSyncDot"></span><span id="sideSyncText">Not connected</span></div>
@@ -1258,8 +1330,11 @@
         <button class="bar-btn view" id="mViewBtn" title="View words" aria-label="View words">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
-        <button class="bar-btn swap" id="mBanksBtn" title="Change word bank" aria-label="Change word bank">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <button class="bar-btn swap" id="mBanksBtn" title="Word banks and sync" aria-label="Word banks and sync">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <button class="bar-btn odds" id="mOddsBtn" title="Tag probability" aria-label="Tag probability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
         </button>
         <button class="bar-btn listen" id="mListenBtn" title="Free listen" aria-label="Free listen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
@@ -1294,27 +1369,30 @@
         </div>
       </div>
 
-      <div class="hint hint-desktop">click card or <kbd>space</kbd> to flip &nbsp;·&nbsp; <kbd>enter</kbd> next card &nbsp;·&nbsp; <kbd>←</kbd> back &nbsp;·&nbsp; <kbd>v</kbd> listen &nbsp;·&nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mark</div>
+      <div class="hint hint-desktop"><span>click card or <kbd>space</kbd> to flip</span><i>&nbsp;·&nbsp;</i><span><kbd>enter</kbd> next card</span><i>&nbsp;·&nbsp;</i><span><kbd>←</kbd> back</span><i>&nbsp;·&nbsp;</i><span><kbd>v</kbd> listen</span><i>&nbsp;·&nbsp;</i><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> mark</span></div>
       <div class="hint hint-touch">tap to flip &nbsp;·&nbsp; swipe left for next &nbsp;·&nbsp; swipe right to go back</div>
     </div>
 
   </div>
 
+  <!-- phone only: the two switches side by side, card count on the right -->
   <div class="bottombar">
-    <div class="shuffle-group">
-      <button class="switch" id="shuffleSwitch" role="switch" aria-checked="false" aria-label="Toggle shuffle">
-        <div class="knob"></div>
-      </button>
-      <span class="shuffle-label">shuffle</span>
+    <div class="m-toggles">
+      <div class="m-side" title="Side shown first">
+        <span class="side-opt jp active" data-side="jp">jp</span>
+        <button class="tgl pink sm" id="mSideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
+          <div class="knob"></div>
+        </button>
+        <span class="side-opt en" data-side="en">en</span>
+      </div>
+      <div class="m-shuffle">
+        <button class="tgl blue sm" id="mShuffleSwitch" role="switch" aria-checked="false" aria-label="Shuffle">
+          <div class="knob"></div>
+        </button>
+        <span class="shuffle-opt" data-shuffle="toggle">shuffle</span>
+      </div>
     </div>
     <div class="m-progress" id="mProgress">0 / 0</div>
-    <div class="m-side" title="Side shown first">
-      <span class="side-opt jp active" data-side="jp">jp</span>
-      <button class="side-switch sm" id="mSideSwitch" role="switch" aria-checked="false" aria-label="Show the English side first">
-        <div class="knob"></div>
-      </button>
-      <span class="side-opt en" data-side="en">en</span>
-    </div>
   </div>
 
 </div>
@@ -1355,6 +1433,7 @@
     <h2 id="viewTitle">Word bank</h2>
     <p class="sub" id="viewSub"></p>
 
+    <div class="tag-band" id="viewBand"></div>
     <div class="view-summary" id="viewSummary"></div>
 
     <div class="sort-row" id="sortRow">
@@ -1367,6 +1446,40 @@
     </div>
 
     <ul class="word-list" id="wordList"></ul>
+  </div>
+</div>
+
+<!-- tag probability: how often each color comes up in shuffle and free listen -->
+<div class="overlay" id="oddsOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="oddsTitle">
+    <button class="close-btn" id="closeOddsBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <h2 id="oddsTitle">Tag probability</h2>
+    <p class="sub">How often each color comes up in shuffle and free listen.</p>
+
+    <div class="tag-band" id="oddsBand"></div>
+
+    <div class="odds-rows">
+      <div class="ls-row odds-row">
+        <label class="ls-label" for="oddsRed"><span class="dot red"></span>red</label>
+        <input class="ls-range odds-range red" id="oddsRed" data-tag="red" type="range" min="0" max="100" step="1">
+        <span class="ls-val" id="oddsRedVal"></span>
+      </div>
+      <div class="ls-row odds-row">
+        <label class="ls-label" for="oddsYellow"><span class="dot yellow"></span>yellow</label>
+        <input class="ls-range odds-range yellow" id="oddsYellow" data-tag="yellow" type="range" min="0" max="100" step="1">
+        <span class="ls-val" id="oddsYellowVal"></span>
+      </div>
+      <div class="ls-row odds-row">
+        <label class="ls-label" for="oddsGreen"><span class="dot green"></span>green</label>
+        <input class="ls-range odds-range green" id="oddsGreen" data-tag="green" type="range" min="0" max="100" step="1">
+        <span class="ls-val" id="oddsGreenVal"></span>
+      </div>
+    </div>
+
+    <div class="odds-actions">
+      <span class="modal-note">The three always add up to 100%.</span>
+      <button class="pill-btn" id="oddsResetBtn" type="button">Reset to default</button>
+    </div>
   </div>
 </div>
 
@@ -1501,7 +1614,12 @@
 
   var STORAGE_KEY = 'kanaFlashcards.v4';
   var LEGACY_KEY = 'kanaFlashcards.v1';
-  var WEIGHTS = { none: 10, red: 6, yellow: 3, green: 1 };
+  // Shuffle and free listen: cards with no color always come first. Once every
+  // card in a word bank has a color, these are the chances (in %) that the next
+  // card is red, yellow or green. Each device remembers its own sliders (the %
+  // button); edit these numbers to change what "reset to default" goes back to.
+  // They should add up to 100.
+  var TAG_ODDS_DEFAULTS = { red: 60, yellow: 30, green: 10 };
   var MARKS = ['red', 'yellow', 'green'];
   var HISTORY_LIMIT = 2000;
   var RESYNC_AFTER_MS = 20000;   // re-check the sheet when the app comes back to the foreground
@@ -1512,6 +1630,7 @@
   var activeId = null;
   var flipped = false;
   var shuffleOn = false;
+  var tagOdds = null;      // { red, yellow, green } in %, always adding up to 100
   var frontSide = 'jp';    // which side is shown first: 'jp' or 'en'
   var sheetUrl = '';
   var sheetTitle = '';
@@ -1536,7 +1655,8 @@
   var markGreenBtn = $('markGreen');
   var markYellowBtn = $('markYellow');
   var markRedBtn = $('markRed');
-  var shuffleSwitch = $('shuffleSwitch');
+  var shuffleSwitches = [$('shuffleSwitch'), $('mShuffleSwitch')];
+  var shuffleOpts = Array.prototype.slice.call(document.querySelectorAll('.shuffle-opt'));
   var sideSwitches = [$('sideSwitch'), $('mSideSwitch')];
   var sideOpts = Array.prototype.slice.call(document.querySelectorAll('.side-opt'));
   var bankListEl = $('bankList');
@@ -1562,7 +1682,16 @@
   var closeViewBtn = $('closeViewBtn');
   var viewTitle = $('viewTitle');
   var viewSub = $('viewSub');
+  var viewBand = $('viewBand');
   var viewSummary = $('viewSummary');
+  var sideOddsBtn = $('sideOddsBtn');
+  var mOddsBtn = $('mOddsBtn');
+  var oddsOverlay = $('oddsOverlay');
+  var closeOddsBtn = $('closeOddsBtn');
+  var oddsBand = $('oddsBand');
+  var oddsResetBtn = $('oddsResetBtn');
+  var oddsInputs = { red: $('oddsRed'), yellow: $('oddsYellow'), green: $('oddsGreen') };
+  var oddsVals = { red: $('oddsRedVal'), yellow: $('oddsYellowVal'), green: $('oddsGreenVal') };
   var sortRow = $('sortRow');
   var wordListEl = $('wordList');
 
@@ -1579,6 +1708,28 @@
   function validMark(m){ return MARKS.indexOf(m) >= 0 ? m : null; }
   function cardKey(jp, en){ return jp + '\u0001' + en; }
   function plural(n, word){ return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+  // turns any three numbers into whole percentages that add up to exactly 100
+  function cleanOdds(raw){
+    var vals = {}, sum = 0;
+    MARKS.forEach(function(k){
+      var v = raw ? Number(raw[k]) : NaN;
+      vals[k] = isFinite(v) && v > 0 ? v : 0;
+      sum += vals[k];
+    });
+    if (!(sum > 0)) return raw === TAG_ODDS_DEFAULTS ? { red: 60, yellow: 30, green: 10 } : cleanOdds(TAG_ODDS_DEFAULTS);
+    var out = {}, used = 0, parts = [];
+    MARKS.forEach(function(k){
+      var exact = vals[k] / sum * 100;
+      out[k] = Math.floor(exact);
+      used += out[k];
+      parts.push({ k: k, frac: exact - out[k] });
+    });
+    parts.sort(function(a, b){ return b.frac - a.frac; });
+    for (var i = 0; used < 100; i++, used++) out[parts[i % parts.length].k]++;
+    return out;
+  }
+  tagOdds = cleanOdds(TAG_ODDS_DEFAULTS);
 
   function svgIcon(){
     var ns = 'http://www.w3.org/2000/svg';
@@ -1604,6 +1755,7 @@
         banks: banks,
         activeId: activeId,
         shuffleOn: shuffleOn,
+        tagOdds: tagOdds,
         frontSide: frontSide,
         sheetUrl: sheetUrl,
         sheetTitle: sheetTitle,
@@ -1638,6 +1790,7 @@
         };
       });
       shuffleOn = !!data.shuffleOn;
+      if (data.tagOdds && typeof data.tagOdds === 'object') tagOdds = cleanOdds(data.tagOdds);
       frontSide = data.frontSide === 'en' ? 'en' : 'jp';
       sheetUrl = typeof data.sheetUrl === 'string' ? data.sheetUrl : '';
       sheetTitle = String(data.sheetTitle || '');
@@ -1873,12 +2026,7 @@
     var title = sheetTitle ? sheetTitle + ' · ' : '';
     banksSub.textContent = sheetUrl ? title + s.text : 'Not connected to a sheet yet';
     if (syncState === 'error' && syncError && sheetUrl) banksSub.textContent += ' — ' + syncError;
-    var spin = syncState === 'syncing';
-    [sideBanksBtn, mBanksBtn, refreshBtn].forEach(function(btn){
-      var svg = btn.querySelector('svg');
-      if (svg) svg.classList.toggle('spin', spin);
-    });
-    refreshBtn.disabled = !sheetUrl || spin;
+    refreshBtn.disabled = !sheetUrl || syncState === 'syncing';
   }
 
   // ---------- rendering: card ----------
@@ -1960,8 +2108,55 @@
   }
 
   function renderShuffle(){
-    shuffleSwitch.classList.toggle('on', shuffleOn);
-    shuffleSwitch.setAttribute('aria-checked', String(shuffleOn));
+    shuffleSwitches.forEach(function(sw){
+      sw.classList.toggle('on', shuffleOn);
+      sw.setAttribute('aria-checked', String(shuffleOn));
+    });
+    shuffleOpts.forEach(function(opt){
+      // "in order" lights up when shuffle is off; every other label when it is on
+      opt.classList.toggle('active', (opt.getAttribute('data-shuffle') === 'off') !== shuffleOn);
+    });
+  }
+
+  function setShuffle(on){
+    if (on === shuffleOn) return;
+    shuffleOn = on;
+    // a new order takes effect from here: forget cards "ahead" in the history
+    Object.keys(histories).forEach(function(id){
+      var h = histories[id];
+      h.list = h.list.slice(0, h.pos + 1);
+    });
+    renderShuffle();
+    save();
+  }
+
+  // ---------- tag band ----------
+  function tagCounts(bank){
+    var counts = { red: 0, yellow: 0, green: 0, none: 0 };
+    bank.cards.forEach(function(c){ counts[c.mark || 'none']++; });
+    return counts;
+  }
+
+  // fills `el` with one segment per color, sized by `parts` ({green, yellow, red, none});
+  // whatever is in `none` stays empty. `order` is the left-to-right color order.
+  var BAND_ORDER = ['green', 'yellow', 'red', 'none'];
+  function fillTagBand(el, parts, order){
+    order = order || BAND_ORDER;
+    el.innerHTML = '';
+    var total = 0, labels = [];
+    order.forEach(function(k){ total += parts[k] || 0; });
+    order.forEach(function(k){
+      var n = parts[k] || 0;
+      if (!n) return;
+      var seg = document.createElement('i');
+      seg.className = k;
+      seg.style.flex = n + ' 1 0';
+      el.appendChild(seg);
+      labels.push(Math.round(n / total * 100) + '% ' + (k === 'none' ? 'unmarked' : k));
+    });
+    el.setAttribute('role', 'img');
+    el.setAttribute('aria-label', labels.join(', '));
+    el.title = labels.join(' · ');
   }
 
   function setFrontSide(side){
@@ -1975,7 +2170,7 @@
   }
 
   // ---------- rendering: bank lists (sidebar + panel) ----------
-  function buildBankItem(bank, onPick){
+  function buildBankItem(bank, onPick, withBand){
     var li = document.createElement('li');
     li.className = 'bank-item' + (bank.id === activeId ? ' active' : '');
 
@@ -1990,6 +2185,12 @@
     metaSpan.textContent = plural(bank.cards.length, 'word');
     nameBtn.appendChild(nameSpan);
     nameBtn.appendChild(metaSpan);
+    if (withBand && bank.cards.length){
+      var band = document.createElement('span');
+      band.className = 'tag-band slim';
+      fillTagBand(band, tagCounts(bank));
+      nameBtn.appendChild(band);
+    }
     nameBtn.addEventListener('click', function(){ switchBank(bank.id); if (onPick) onPick(); });
 
     var viewBtn = document.createElement('button');
@@ -2022,8 +2223,8 @@
       return;
     }
     banks.forEach(function(bank){
-      bankListEl.appendChild(buildBankItem(bank, null));
-      panelBankList.appendChild(buildBankItem(bank, closeBanks));
+      bankListEl.appendChild(buildBankItem(bank, null, false));
+      panelBankList.appendChild(buildBankItem(bank, closeBanks, true));
     });
   }
 
@@ -2086,23 +2287,38 @@
     renderCard(true);
   }
 
+  // Which card comes next in shuffle and free listen.
+  // Cards with no color always win: while the bank still has one (other than
+  // the card in `exclude`), the pick is among those only. After that a color
+  // is drawn with the chances set by the % sliders, then a card of that color.
+  // `usable` (optional) leaves out cards that can't be played.
+  function pickWeightedIndex(bank, exclude, usable){
+    var groups = { none: [], red: [], yellow: [], green: [] };
+    bank.cards.forEach(function(c, i){
+      if (i === exclude || (usable && !usable(c))) return;
+      groups[c.mark || 'none'].push(i);
+    });
+    function anyOf(list){ return list[Math.floor(Math.random() * list.length)]; }
+    if (groups.none.length) return anyOf(groups.none);
+    var live = MARKS.filter(function(k){ return groups[k].length > 0 && tagOdds[k] > 0; });
+    if (live.length){
+      var total = live.reduce(function(sum, k){ return sum + tagOdds[k]; }, 0);
+      var r = Math.random() * total, acc = 0;
+      for (var j = 0; j < live.length; j++){
+        acc += tagOdds[live[j]];
+        if (r < acc) return anyOf(groups[live[j]]);
+      }
+      return anyOf(groups[live[live.length - 1]]);
+    }
+    // only colors set to 0% are left: show them anyway instead of getting stuck
+    var rest = groups.red.concat(groups.yellow, groups.green);
+    return rest.length ? anyOf(rest) : -1;
+  }
+
   function weightedNextIndex(bank){
-    var n = bank.cards.length;
-    if (n <= 1) return 0;
-    var pool = [];
-    for (var i = 0; i < n; i++){
-      if (i === bank.index) continue;
-      var mark = bank.cards[i].mark || 'none';
-      pool.push({ index: i, weight: WEIGHTS[mark] });
-    }
-    var total = pool.reduce(function(sum, p){ return sum + p.weight; }, 0);
-    var r = Math.random() * total;
-    var acc = 0;
-    for (var j = 0; j < pool.length; j++){
-      acc += pool[j].weight;
-      if (r < acc) return pool[j].index;
-    }
-    return pool[pool.length - 1].index;
+    if (bank.cards.length <= 1) return 0;
+    var idx = pickWeightedIndex(bank, bank.index, null);
+    return idx < 0 ? bank.index : idx;
   }
 
   function nextCard(){
@@ -2255,16 +2471,20 @@
     viewTitle.title = bank.name;
     viewSub.textContent = plural(bank.cards.length, 'word') + ' · tap a word to jump to its card';
 
-    var counts = { red: 0, yellow: 0, green: 0, none: 0 };
-    bank.cards.forEach(function(c){ counts[c.mark || 'none']++; });
+    var counts = tagCounts(bank);
+    var totalCards = bank.cards.length;
+
+    fillTagBand(viewBand, counts);
+    viewBand.style.display = totalCards ? '' : 'none';
 
     viewSummary.innerHTML = '';
-    ['red', 'yellow', 'green', 'none'].forEach(function(k){
+    ['green', 'yellow', 'red', 'none'].forEach(function(k){
       var s = document.createElement('span');
       var d = document.createElement('span');
       d.className = 'dot ' + k;
       s.appendChild(d);
-      s.appendChild(document.createTextNode(counts[k] + ' ' + (k === 'none' ? 'unmarked' : k)));
+      var pct = totalCards ? ' · ' + Math.round(counts[k] / totalCards * 100) + '%' : '';
+      s.appendChild(document.createTextNode(counts[k] + ' ' + (k === 'none' ? 'unmarked' : k) + pct));
       viewSummary.appendChild(s);
     });
 
@@ -2314,6 +2534,58 @@
     }
     goTo(bank, index);
   }
+
+  // ---------- tag probability popup ----------
+  // Three linked sliders that always add up to 100: moving one hands the rest
+  // to the other two, in the proportion they had when the drag started.
+  var oddsDrag = null; // { tag, vals } while a slider is being dragged
+
+  function renderOdds(){
+    MARKS.forEach(function(k){
+      oddsInputs[k].value = tagOdds[k];
+      oddsInputs[k].style.setProperty('--fill', tagOdds[k] + '%');
+      oddsVals[k].textContent = tagOdds[k] + '%';
+    });
+    fillTagBand(oddsBand, tagOdds, MARKS); // same order as the sliders
+  }
+
+  function setOdds(tag, value){
+    value = Math.min(100, Math.max(0, Math.round(Number(value) || 0)));
+    if (!oddsDrag || oddsDrag.tag !== tag){
+      oddsDrag = { tag: tag, vals: { red: tagOdds.red, yellow: tagOdds.yellow, green: tagOdds.green } };
+    }
+    var others = MARKS.filter(function(k){ return k !== tag; });
+    var a = oddsDrag.vals[others[0]], b = oddsDrag.vals[others[1]];
+    var rest = 100 - value;
+    var first = a + b > 0 ? Math.round(rest * a / (a + b)) : Math.round(rest / 2);
+    tagOdds[tag] = value;
+    tagOdds[others[0]] = first;
+    tagOdds[others[1]] = rest - first;
+    save();
+    renderOdds();
+  }
+
+  function openOdds(){
+    oddsDrag = null;
+    renderOdds();
+    oddsOverlay.classList.add('open');
+  }
+  function closeOdds(){ oddsOverlay.classList.remove('open'); }
+
+  MARKS.forEach(function(k){
+    oddsInputs[k].addEventListener('input', function(){ setOdds(k, oddsInputs[k].value); });
+    oddsInputs[k].addEventListener('change', function(){ oddsDrag = null; });
+  });
+  oddsResetBtn.addEventListener('click', function(){
+    oddsDrag = null;
+    tagOdds = cleanOdds(TAG_ODDS_DEFAULTS);
+    save();
+    renderOdds();
+  });
+  sideOddsBtn.addEventListener('click', openOdds);
+  mOddsBtn.addEventListener('click', openOdds);
+  closeOddsBtn.addEventListener('click', closeOdds);
+  oddsOverlay.addEventListener('click', function(e){ if (e.target === oddsOverlay) closeOdds(); });
 
   // ---------- swipe (touch) ----------
   var SWIPE_THRESHOLD = 60;
@@ -2387,15 +2659,14 @@
   markYellowBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('yellow'); });
   markRedBtn.addEventListener('click', function(e){ e.stopPropagation(); markCurrent('red'); });
 
-  shuffleSwitch.addEventListener('click', function(){
-    shuffleOn = !shuffleOn;
-    // a new order takes effect from here: forget cards "ahead" in the history
-    Object.keys(histories).forEach(function(id){
-      var h = histories[id];
-      h.list = h.list.slice(0, h.pos + 1);
+  shuffleSwitches.forEach(function(sw){
+    sw.addEventListener('click', function(){ setShuffle(!shuffleOn); });
+  });
+  shuffleOpts.forEach(function(opt){
+    opt.addEventListener('click', function(){
+      var want = opt.getAttribute('data-shuffle');
+      setShuffle(want === 'toggle' ? !shuffleOn : want === 'on');
     });
-    renderShuffle();
-    save();
   });
 
   sideSwitches.forEach(function(sw){
@@ -2430,10 +2701,12 @@
     if (listenOverlay.classList.contains('open')){ listenKeydown(e); return; }
     var banksOpen = banksOverlay.classList.contains('open');
     var viewOpen = viewOverlay.classList.contains('open');
-    if (banksOpen || viewOpen){
+    var oddsOpen = oddsOverlay.classList.contains('open');
+    if (banksOpen || viewOpen || oddsOpen){
       if (e.key === 'Escape'){
         if (banksOpen) closeBanks();
         if (viewOpen) closeView();
+        if (oddsOpen) closeOdds();
       }
       return;
     }
@@ -2471,8 +2744,8 @@
   // =====================================================================
   // ---------- free listen ----------
   // Hands-free review: say one side, pause so you can answer in your head,
-  // say the other side, ding, next card. Cards come in the same weighted
-  // order as shuffle (unmarked most often, then red, yellow, green) and the
+  // say the other side, ding, next card. Cards come in the same order as
+  // shuffle (unmarked cards first, then by the % sliders) and the
   // "show first" switch decides which side is spoken first.
   //
   // Two engines:
@@ -2599,22 +2872,11 @@
     return n;
   }
 
-  // same weights as shuffle, never the same card twice in a row (unless it's the only one)
+  // same order as shuffle, never the same card twice in a row (unless it's the only one)
   function pickListenIndex(bank, exclude){
-    var pool = [], total = 0;
-    bank.cards.forEach(function(c, i){
-      if (i === exclude || !listenable(c)) return;
-      var w = WEIGHTS[c.mark || 'none'];
-      pool.push({ index: i, weight: w });
-      total += w;
-    });
-    if (!pool.length) return listenable(bank.cards[exclude]) ? exclude : -1;
-    var r = Math.random() * total, acc = 0;
-    for (var j = 0; j < pool.length; j++){
-      acc += pool[j].weight;
-      if (r < acc) return pool[j].index;
-    }
-    return pool[pool.length - 1].index;
+    var idx = pickWeightedIndex(bank, exclude, listenable);
+    if (idx >= 0) return idx;
+    return listenable(bank.cards[exclude]) ? exclude : -1;
   }
 
   function sidesOf(card){
@@ -3068,7 +3330,7 @@
     });
   }
 
-  // the card order for one track, in the same weighted order as shuffle
+  // the card order for one track, in the same order as shuffle
   function planSequence(bank, firstIdx){
     var st = ls.settings;
     // deliberately a little short per card, so the plan has enough cards and gets trimmed to length

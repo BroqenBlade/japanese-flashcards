@@ -7,7 +7,7 @@ Free listen plays the current word bank as audio, with nothing to tap. Each card
 3. The other side is spoken.
 4. A short pause ("after answer"), then a ding, then the next card.
 
-Cards come in the same weighted order as shuffle. Unmarked cards come up most often, then red, then yellow, then green, and the same card never plays twice in a row.
+Cards come in the same order as shuffle. Unmarked cards always come first: while the word bank still has any, only those play. Once every card has a color, the % button sets how often red, yellow and green come up (60 / 30 / 10 to start with). The same card never plays twice in a row.
 
 Open it with the headphones button. On a PC it sits in the left column, or press `l`. On a phone it's next to the word bank name. Closing the panel keeps it playing, and a small player appears at the bottom.
 
